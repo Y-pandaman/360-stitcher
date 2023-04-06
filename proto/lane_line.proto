@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package xcmg_proto;
+
+
+message lane_line{
+  bool front_wheel_driving_line=1;
+  bool blade_operation_line=2;
+  bool blade_max_operation_line=3;
+}
