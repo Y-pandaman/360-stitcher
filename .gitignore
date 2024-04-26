@@ -1,0 +1,14 @@
+build/
+log/
+output/
+*.pb.cc
+*.pb.h
+*.log
+*.onnx
+*.pt
+*.engine
+*.wts
+parameters/weights/
+*.avi
+*.mp4
+

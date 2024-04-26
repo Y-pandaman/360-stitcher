@@ -1,0 +1,179 @@
+---
+# 语言: None, Cpp, Java, JavaScript, ObjC, Proto, TableGen, TextProto
+Language:        Cpp
+BasedOnStyle:  WebKit
+# 访问说明符(public、private等)的偏移
+AccessModifierOffset: -4
+# 开括号(开圆括号、开尖括号、开方括号)后的对齐: Align, DontAlign, AlwaysBreak(总是在开括号后换行)
+AlignAfterOpenBracket: Align
+# 连续赋值时，对齐所有等号
+AlignConsecutiveAssignments: true
+# 连续声明时，对齐所有声明的变量名
+AlignConsecutiveDeclarations: false
+# 左对齐逃脱换行(使用反斜杠换行)的反斜杠
+AlignEscapedNewlinesLeft:	true
+# 逃脱换行(使用反斜杠换行)的反斜杠
+AlignEscapedNewlines: Left
+# 操作数对齐方式
+AlignOperands: true
+# 尾随的注释对齐
+AlignTrailingComments: true
+# 允许函数声明的所有参数在放在一行
+AllowAllParametersOfDeclarationOnNextLine: true
+# 允许短的块放在同一行
+AllowShortBlocksOnASingleLine: false
+# 允许短的case标签放在同一行
+AllowShortCaseLabelsOnASingleLine: false
+# 允许短的函数放在同一行
+AllowShortFunctionsOnASingleLine: Empty
+# 允许短的if语句保持在同一行
+AllowShortIfStatementsOnASingleLine: false
+# 允许短的循环while保持在同一行
+AllowShortLoopsOnASingleLine: false
+# 总是在返回类型后换行
+AlwaysBreakAfterReturnType: None
+# 总是在多行string字面量前换行
+AlwaysBreakBeforeMultilineStrings: false
+# 总是在template声明后换行
+AlwaysBreakTemplateDeclarations: false
+# 表示函数实参要么都在同一行，要么都各自一行
+BinPackArguments: true
+# false表示所有形参要么都在同一行，要么都各自一行
+BinPackParameters: true
+# 大括号换行，只有当BreakBeforeBraces设置为Custom时才有效，设置其他配置则下面不生效
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   true
+  AfterNamespace:  true
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  AfterExternBlock: false
+  BeforeCatch:     false
+  BeforeElse:      false
+  IndentBraces:    false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+# 在java字段的注释后换行
+BreakAfterJavaFieldAnnotations: false
+# 在二元运算符前换行
+BreakBeforeBinaryOperators: None
+# 在大括号前换行
+BreakBeforeBraces: Attach
+# 在concept前换行
+# BreakBeforeConceptDeclarations: Never
+# 在三元运算符前换行
+BreakBeforeTernaryOperators: true
+# 构造函数初始值设定项换行样式
+BreakConstructorInitializers: BeforeColon
+# 字符串换行样式
+BreakStringLiterals: false
+# 每行字符的限制，0表示没有限制
+ColumnLimit:     80
+# 描述具有特殊意义的注释的正则表达式，它不应该被分割为多行或以其它方式改变
+CommentPragmas:  '^ IWYU pragma:'
+# 在新行上声明每个命名空间
+CompactNamespaces: false
+# 构造函数的初始化列表的缩进宽度
+ConstructorInitializerIndentWidth: 4
+# 延续的行的缩进宽度
+ContinuationIndentWidth: 4
+# 去除C++11的列表初始化的大括号{后和}前的空格
+Cpp11BracedListStyle: true
+# 继承最常用的指针和引用的对齐方式
+DerivePointerAlignment: false
+# 关闭格式化
+DisableFormat:   false
+# 自动检测函数的调用和定义是否被格式为每行一个参数(Experimental)
+ExperimentalAutoDetectBinPacking: false
+# 自动补充namespace注释
+FixNamespaceComments: false
+# 需要被解读为foreach循环而不是函数调用的宏
+ForEachMacros: ['RANGES_FOR', 'FOREACH']
+# 多个#include块合并在一起并排序为一个
+IncludeBlocks:   Merge
+# 可以定义负数优先级从而保证某些#include永远在最前面
+IncludeCategories:
+  - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
+    Priority:        2
+  - Regex:           '^(<|"(gtest|gmock|isl|json)/)'
+    Priority:        3
+  - Regex:           '.*'
+    Priority:        1
+IncludeIsMainRegex: '(Test)?$'
+# 缩进case标签
+IndentCaseLabels: false
+# 缩进宽度
+IndentWidth: 4
+# 函数返回类型换行时，缩进函数声明或函数定义的函数名
+IndentWrappedFunctionNames: false
+#InsertBraces: true
+# 保留JavaScript字符串引号
+JavaScriptQuotes: Leave
+# 包装 JavaScript 导入/导出语句
+JavaScriptWrapImports: true
+# 保留在块开始处的空行
+KeepEmptyLinesAtTheStartOfBlocks: false
+# 开始一个块的宏的正则表达式
+MacroBlockBegin: ''
+# 结束一个块的宏的正则表达式
+MacroBlockEnd:   ''
+# 连续空行的最大数量
+MaxEmptyLinesToKeep: 1
+# 命名空间的缩进
+NamespaceIndentation: Inner
+# 使用ObjC块时缩进宽度
+ObjCBlockIndentWidth: 4
+# 在ObjC的@property后添加一个空格
+ObjCSpaceAfterProperty: false
+# 在ObjC的protocol列表前添加一个空格
+ObjCSpaceBeforeProtocolList: true
+PenaltyBreakAssignment: 2
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 60
+# 指针的对齐: Left, Right, Middle
+PointerAlignment: Left
+# 允许重新排版注释
+ReflowComments:  true
+#RemoveBracesLLVM: false
+# 允许排序#include
+SortIncludes:    true
+# 对using声明排序
+SortUsingDeclarations: true
+# 在C风格类型转换后添加空格
+SpaceAfterCStyleCast: false
+# 在Template关键字后添加空格
+SpaceAfterTemplateKeyword: true
+# 在赋值运算符之前添加空格
+SpaceBeforeAssignmentOperators: true
+# 开圆括号之前添加一个空格
+SpaceBeforeParens: ControlStatements
+# 在空的圆括号中添加空格
+SpaceInEmptyParentheses: false
+# 在尾随的评论前添加的空格数(只适用于//)
+SpacesBeforeTrailingComments: 3
+# 在尖括号的<后和>前添加空格
+SpacesInAngles:  false
+# 在C风格类型转换的括号中添加空格
+SpacesInCStyleCastParentheses: false
+# 在容器(ObjC和JavaScript的数组和字典等)字面量中添加空格
+SpacesInContainerLiterals: true
+# 在圆括号的(后和)前添加空格
+SpacesInParentheses: false
+# 在方括号的[后和]前添加空格，lamda表达式和未指明大小的数组的声明不受影响
+SpacesInSquareBrackets: false
+# 标准
+Standard:        Auto
+# tab宽度
+TabWidth:        4
+# 使用tab字符：ForIndentation——仅将制表符用于缩进
+UseTab:          Never
+...
+
