@@ -91,21 +91,26 @@ void FishToCylProj::stitch_project_to_cyn(int time) {
             CylinderImageGPU_stilib(cyl_image_height_, cyl_image_width_);
     }
 
+    // 检查cuda错误
     checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaGetLastError());
+    // 如果存在背景跟踪图像，将背景跟踪图像与当前视图混合；否则，将当前视图投影到圆柱体上。
     if (m_sub_back_track != nullptr) {
-        cv::Mat back_track_image = getBackTrackImage();
+        cv::Mat back_track_image = getBackTrackImage();   // 获取当前帧
 
         if (!back_track_image.empty()) {
-            setExtraImage(back_track_image);
+            setExtraImage(back_track_image);   // 将图像放到GPU上
+            // 如果存在back_track_image，使用CUDA加速将额外视图图像混合到屏幕上。
             BlendExtraViewToScreen_cuda(view_.image, extra_view.image,
                                         view_.width, view_.height, 1.0);
         }
     } else {
+        // 将当前视图投影到圆柱体图像上。
         projToCylinderImage_cuda(view_, cyl_image_, *cyl_, cyl_image_width_,
                                  cyl_image_height_);
     }
 
+// 将圆柱体图像从GPU内存复制到CPU内存，并将结果保存为PNG文件。
 #ifdef OUTPUT_CYL_IMAGE
     cv::Mat rgb_0, mask_0;
     static int cyl_image_count = 0;
@@ -168,7 +173,7 @@ FishToCylProj::FishToCylProj(const Undistorter& undistorter) {
     if (!eCAL::IsInitialized())
         eCAL::Initialize();
     eCAL::Util::EnableLoopback(true);
-
+    // 订阅Back_Track_Image数据
     m_sub_back_track = std::make_shared<
         eCAL::protobuf::CSubscriber<proto_messages::OpencvImage>>(
         "Back_Track_Image");
@@ -221,16 +226,21 @@ void FishToCylProj::setExtraImageCuda(float* image_cuda, int width,
     extra_view.image = (uchar3*)extra_view_buffer;
 }
 
+// 将图像放到GPU上
 void FishToCylProj::setExtraImage(cv::Mat extra_img) {
     extra_view.height = extra_img.rows;
     extra_view.width  = extra_img.cols;
     extra_view.mask   = nullptr;
 
-    if (extra_view_buffer == nullptr)
+    // 检查extra_view_buffer是否为空指针。如果是，表示尚未为extra_img的设备（GPU）内存分配空间
+    if (extra_view_buffer == nullptr) {
+        // 使用cudaMalloc函数为GPU设备内存分配空间，用于存储extra_img
         checkCudaErrors(
             cudaMalloc((void**)&extra_view_buffer,
                        extra_img.rows * extra_img.cols * sizeof(uchar3)));
+    }
 
+    // 将CPU内存中的extra_img数据复制到之前分配的GPU内存中
     checkCudaErrors(
         cudaMemcpy(extra_view_buffer, extra_img.data,
                    extra_view.width * extra_view.height * sizeof(uchar3),

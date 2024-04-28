@@ -2,7 +2,7 @@
  * @Author: 姚潘涛
  * @Date: 2024-04-23 19:16:24
  * @LastEditors: 姚潘涛
- * @LastEditTime: 2024-04-28 18:42:05
+ * @LastEditTime: 2024-04-28 19:12:36
  * @Description:
  *
  * Copyright (c) 2024 by pandaman, All Rights Reserved.
@@ -33,7 +33,8 @@ void CameraSender::mainWorker() {
         if (fish_to_cyl_proj != nullptr) {
             assert(fish_to_cyl_proj != nullptr);
             fish_to_cyl_proj->setImage(img);   // 图像从CPU复制到GPU
-            fish_to_cyl_proj->stitch_project_to_cyn(cur_frame);
+            fish_to_cyl_proj->stitch_project_to_cyn(
+                cur_frame);   // 将图像投影到圆柱面上
             img = fish_to_cyl_proj->getProjectedImage();
         }
         ecal_image_sender.pubImage(img);

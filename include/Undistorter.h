@@ -82,6 +82,7 @@ private:
     std::shared_ptr<eCAL::protobuf::CSubscriber<proto_messages::OpencvImage>>
         m_sub_back_track = nullptr;
 
+    // 图像回调函数
     void ecalBackTrackImageCallBack(const char* _topic_name,
                                     const proto_messages::OpencvImage& msg,
                                     long long int _time, long long int _clock,
@@ -98,6 +99,7 @@ private:
         locker.unlock();
     }
 
+    // 获取当前图像
     cv::Mat getBackTrackImage() {
         std::unique_lock<std::mutex> locker(mutex_on_back_track_image_buffer);
         cv::Mat result = back_track_image_buffer.clone();
