@@ -37,7 +37,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     // 启动yolo识别器
     std::filesystem::path weight_file_path(parameters_dir);
     weight_file_path.append("weights/best.onnx");
-    yolo_detect::YoloDetect yolo_detect(weight_file_path, true);
+    yolo_detect::YoloDetect yolo_detect(weight_file_path, true);   // 初始化yolo
     checkCudaErrors(cudaFree(0));
     cudaEvent_t start, stop;
     checkCudaErrors(cudaEventCreate(&start));
@@ -46,31 +46,29 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
     // 加载内参文件
     std::filesystem::path yamls_dir(parameters_dir);
-    yamls_dir.append("yamls");
+    yamls_dir.append("yamls2");   // 相机的内参，单应性矩阵
 
-    // 录制的图像文件
-    std::filesystem::path data_root_dir = "/home/bdca/camera_video";
+    // 录制的图像文件路径
+    std::filesystem::path data_root_dir = "/home/bdca/camera_video1";
 
-    //    std::vector<int> camera_idx_vec = {3, 6, 2, 1};
-    //    std::vector<int> camera_idx_vec = {0, 3, 6, 2, 7, 1};
     // 相机索引
     // 左后-左前-前-右前-右后-后
     std::vector<int> camera_idx_vec = {1, 3, 0, 4, 2, 5};
 
-    // 去畸变
+    // 声明去畸变对象
     std::vector<Undistorter> undistorter_vec(camera_idx_vec.size());
     // 初始化ecal
     EcalImageSender ecal_image_sender;
-    ecal_image_sender.open("overlook_switcher");
+    ecal_image_sender.open("overlook_switcher");   // 定义一个ecal发布器
 
     for (int i = 0; i < camera_idx_vec.size(); i++) {
         std::filesystem::path yaml_path(yamls_dir);
         yaml_path.append("camera_" + std::to_string(camera_idx_vec[i]) +
                          "_intrin.yaml");
         undistorter_vec[i].loadCameraIntrin(
-            yaml_path.string());   // 加载相机内参
+            yaml_path.string());   // 加载相机内参，去畸变参数
 #ifdef USE_720P
-        undistorter_vec[i].changeSize(2.0 / 3.0);   // 改变内参K值
+        undistorter_vec[i].changeSize(2.0 / 3.0);   // 根据图像大小改变内参K值
 #endif
         undistorter_vec[i].getMapForRemapping(1.2, 0.1);   // 计算变换矩阵
     }
@@ -79,13 +77,13 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     int src_width  = undistorter_vec[0].getNewImageSize().width;
     int HEIGHT     = 720;
     int WIDTH      = 1280;
-    //    int HEIGHT = 1080;
-    //    int WIDTH = 1920;
+    // 读取车辆位置
     std::filesystem::path car_rect_yaml(yamls_dir);
-    car_rect_yaml.append("car_rect.yaml");   // 读取车辆位置
+    car_rect_yaml.append("car_rect.yaml");
     cv::FileStorage car_rect_fs;
     cv::Rect_<int> car_rect;
     if (!car_rect_fs.open(car_rect_yaml, cv::FileStorage::READ)) {
+        LOG_F(WARNING, "Failed to open car_rect, %s", car_rect_yaml.c_str());
         car_rect.x      = WIDTH / 2 - 1000;
         car_rect.y      = HEIGHT / 2 - 500;
         car_rect.width  = 2000;
@@ -97,6 +95,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
 // 输出拼接结果
 #ifdef OUTPUT_STITCHING_RESULT_VIDEO
+    // 定义视频写入器
     cv::VideoWriter video_writer;
     std::filesystem::path output_video_path("../output/video.avi");
     if (!video_writer.open(output_video_path,
@@ -107,7 +106,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     }
 #endif
 
-// 使用图像文件
+// 读取图像文件
 #ifdef USE_VIDEO_INPUT
     std::vector<cv::VideoCapture> video_capture_vec(camera_idx_vec.size());
 
@@ -115,8 +114,6 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         std::filesystem::path video_path(data_root_dir);
         video_path.append("camera_video_" + std::to_string(camera_idx_vec[i]) +
                           ".avi");
-        //        video_path.append("decode_video_" +
-        //        std::to_string(camera_idx_vec[i]) + ".avi");
         if (!video_capture_vec[i].open(video_path)) {
             printf("open video error %s\n", video_path.c_str());
         }
@@ -125,9 +122,6 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
 // 使用gst码流
 #ifdef USE_GST_INPUT
-    //    std::vector<int> camera_idx_vec = {0, 3, 6, 2, 7, 1};
-    //    std::vector<int> camera_idx_vec = {3, 6, 2, 1};
-    //    std::vector<int> camera_idx_vec = {1,3,0,4,2,5};
     std::vector<std::string> gst_strs = {
         "udpsrc port=5101 "
         "caps=application/"
@@ -163,12 +157,14 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
     // 接收图像
     std::vector<GstReceiver> gst_receivers(camera_idx_vec.size());
+    // 依次初始化码流抓取器
     for (int i = 0; i < camera_idx_vec.size(); i++) {
         printf("initialize VideoCapture %d...\n", i);
         if (gst_receivers[i].initialize(gst_strs[i], 2)) {
             printf("initialize VideoCapture %d done\n", i);
         }
     }
+    // 依次抓取视频流
     for (int i = 0; i < camera_idx_vec.size(); i++) {
         if (gst_receivers[i].startReceiveWorker()) {
             printf("start gst_receiver %d done\n", i);
@@ -180,6 +176,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 #ifdef RESEND_ORIGINAL_IMAGE
     std::vector<std::string> original_ecal_topic_str {"left", "right", "back"};
     std::vector<int> original_camera_id_in_vec {1, 3, 5};
+    // 初始化图像发布器
     std::vector<CameraSender> camera_sender_vec(original_ecal_topic_str.size());
     for (int i = 0; i < original_camera_id_in_vec.size(); i++) {
         std::filesystem::path yaml_path(yamls_dir);
@@ -188,7 +185,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
             "camera_" +
             std::to_string(camera_idx_vec[original_camera_id_in_vec[i]]) +
             "_intrin.yaml");
-//        undistorter_vec[i].loadCameraIntrin(yaml_path.string());
+        // 获取去畸变的相机矩阵
 #ifndef USE_720P
         gst_receivers[original_camera_id_in_vec[i]].setUndistorter(
             yaml_path, 1.0, 0.0, false);
@@ -203,9 +200,9 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         }
         camera_sender_vec[i].setGstReceiver(
             &gst_receivers[original_camera_id_in_vec[i]]);
-        //        camera_sender_vec[i].setYoloDetector(weight_file_path);
-        camera_sender_vec[i].setEcalTopic(original_ecal_topic_str[i]);
-        camera_sender_vec[i].startEcalSend();   // 发送ecal
+        camera_sender_vec[i].setEcalTopic(
+            original_ecal_topic_str[i]);   // 初始化ecal发布器
+        camera_sender_vec[i].startEcalSend();   // 发送ecal数据
     }
 #endif   // RESEND_ORIGINAL_IMAGE
 
@@ -230,27 +227,28 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
         float factor = 0.3;
         if (camera_idx_vec[i] == 1) {
+            mask_image(
+                cv::Range(0, mask_image.rows),
+                cv::Range(mask_image.cols * (1 - factor), mask_image.cols))
+                .setTo(0);
+        }
+        if (camera_idx_vec[i] == 5) {
             mask_image(cv::Range(0, mask_image.rows),
                        cv::Range(0, mask_image.cols * factor))
                 .setTo(0);
         }
-        //        if(camera_idx_vec[i] == 3){
-        //            mask_image(cv::Range(0, mask_image.rows), cv::Range(0,
-        //            mask_image.cols * factor)).setTo(0);
-        //        }
 
         if (camera_idx_vec[i] == 4) {
-            mask_image(cv::Range(0, mask_image.rows),
-                       cv::Range(0, mask_image.cols * factor))
+            mask_image(
+                cv::Range(0, mask_image.rows),
+                cv::Range(mask_image.cols * (1 - factor), mask_image.cols))
                 .setTo(0);
         }
-        //        if(camera_idx_vec[i] == 2) {
-        //            mask_image(cv::Range(0, mask_image.rows), cv::Range(0,
-        //            mask_image.cols * (factor))).setTo(0);
-        //        }
-
-        //        cv::imshow("mask " + std::to_string(camera_idx_vec[i]),
-        //        mask_image); cv::waitKey(0);
+        if (camera_idx_vec[i] == 3) {
+            mask_image(cv::Range(0, mask_image.rows),
+                       cv::Range(0, mask_image.cols * (factor)))
+                .setTo(0);
+        }
         cv::Mat H = cv::Mat::eye(3, 3, CV_64F);   // Creating distortion matrix
         std::filesystem::path yaml_path(yamls_dir);
         yaml_path.append("camera_" + std::to_string(camera_idx_vec[i]) +
@@ -369,8 +367,8 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
             }
         }
         step_timer.TimeEnd();
-        //        LOG_F(INFO, "undistort input image time: %fms",
-        //        step_timer.TimeGap_in_ms());
+        // LOG_F(INFO, "undistort input image time: %fms",
+        //       step_timer.TimeGap_in_ms());
 
         for (int i = 0; i < input_img_vec.size(); i++) {
             struct_yolo_result yolo_result =
@@ -396,16 +394,13 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
             }
             bboxs[i] = temp;
         }
-
         std::vector<std::vector<BBox>> temp(camera_idx_vec.size());
         step_timer.TimeStart();
         As->feed(undistorted_img_vec, bboxs);
         step_timer.TimeEnd();
-
         step_timer.TimeStart();
         cv::Mat rgb = As->output_CPUMat();
         step_timer.TimeEnd();
-
         // 调整贴图的位置
         while (adjust_rect) {
             cv::Mat rgb_clone = rgb.clone();
@@ -495,7 +490,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
         ecal_image_sender.pubImage(rgb);
         step_timer.TimeEnd();
-        std::cout << "result_image_size: " << rgb.size() << std::endl;
+        // std::cout << "result_image_size: " << rgb.size() << std::endl;
 
 #ifdef OUTPUT_STITCHING_RESULT_VIDEO
         cv::imshow("result_image", rgb);

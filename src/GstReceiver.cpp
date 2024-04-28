@@ -1,6 +1,6 @@
 #include "GstReceiver.h"
 
-// void
+// 初始化打开码流数据，设置图像队列
 bool GstReceiver::initialize(const std::string& url_, int queue_size_) {
     this->video_url  = url_;
     this->queue_size = queue_size_;
@@ -34,6 +34,7 @@ bool GstReceiver::startReceiveWorker() {
         video_height = video_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
         video_width  = video_capture.get(cv::CAP_PROP_FRAME_WIDTH);
         p_write = p_read = 0;
+        // 开启抓取视频线程
         thread_receive_worker =
             new std::thread(&GstReceiver::receiveWorker, this);
         status = RUN;
@@ -106,6 +107,7 @@ GstReceiver::~GstReceiver() {
     delete yolo_detector;
 }
 
+// 获取当前图像帧
 cv::Mat GstReceiver::getImageMat() {
     cv::Mat result;
     if (p_write >= 1)
@@ -121,6 +123,7 @@ cv::Mat GstReceiver::getImageMat() {
     return result;
 }
 
+// 设置去畸变矩阵
 void GstReceiver::setUndistorter(const std::string& intrin_file_path,
                                  float new_size_factor, float balance,
                                  bool USE_720P) {

@@ -1,4 +1,6 @@
 #include "Undistorter.h"
+
+// 加载相机内参
 bool Undistorter::loadCameraIntrin(const std::string& fs_path) {
     cv::FileStorage fs;
     if (!fs.open(fs_path, cv::FileStorage::Mode::READ)) {
@@ -9,11 +11,12 @@ bool Undistorter::loadCameraIntrin(const std::string& fs_path) {
     fs["D"] >> D;
     fs["image_size"] >> input_image_size;
 
-    getMapForRemapping(1.0, 0.0);
+    // getMapForRemapping(1.0, 0.0);
     map_inited = true;
     return true;
 }
 
+// 估计新的相机内参矩阵,无畸变后的
 bool Undistorter::getMapForRemapping(float new_size_factor, float balance) {
     if (K.empty() || D.empty()) {
         printf("K & D empty, cannot get map for remapping\n");
@@ -24,8 +27,12 @@ bool Undistorter::getMapForRemapping(float new_size_factor, float balance) {
         cv::Size(this->input_image_size.width * new_size_factor,
                  this->input_image_size.height * new_size_factor);
     //    std::cout << "new_image_size: " << new_image_size << std::endl;
+    // 为去畸变和图像校正估计新的相机矩阵
+    // 用来调节去畸变之后的视野的，去畸变之后一般视野会变小，是否需要保持原来的视野。
     cv::fisheye::estimateNewCameraMatrixForUndistortRectify(
         K, D, input_image_size, eye_mat, new_K, balance, new_image_size);
+    // 计算去畸变和图像校正的映射，如果D为空，则使用零失真；如果R为空，则使用单位矩阵
+    // 此函数为了提高算法运行速度
     cv::fisheye::initUndistortRectifyMap(K, D, eye_mat, new_K, new_image_size,
                                          CV_16SC2, this->map1, this->map2);
     new_D = D;
@@ -56,6 +63,7 @@ bool Undistorter::getMask(cv::Mat& out_mask) {
     return true;
 }
 
+// 根据缩放的图像大小确定相机内参，乘以对应的图像比例
 void Undistorter::changeSize(float factor) {
     K *= factor;
     K.at<double>(2, 2) = 1;
@@ -64,17 +72,21 @@ void Undistorter::changeSize(float factor) {
     input_image_size.width *= factor;
 }
 
+// 将图像投影到圆柱面上
 void FishToCylProj::stitch_project_to_cyn(int time) {
     if (cyl_ == nullptr) {
-        float r = 1000.0;
-        cyl_    = new CylinderGPU_stilib(view_.camera.R, view_.camera.C, r);
-        cyl_image_width_  = view_.width * 1.5;
-        cyl_image_height_ = view_.height * 1.2;
+        float r = 1000.0;   // 圆柱半径
+        // 创建圆柱投影对象
+        cyl_ = new CylinderGPU_stilib(view_.camera.R, view_.camera.C, r);
+        cyl_image_width_  = view_.width * 1.5;    // 圆柱体图像的宽度
+        cyl_image_height_ = view_.height * 1.2;   // 圆柱体图像的高度
+        // 根据col_grid_num_（列网格数）调整圆柱体图像的高度/宽度，确保它是行/列网格数的整数倍。
         cyl_image_width_ =
             ((cyl_image_width_ - 1) / col_grid_num_ + 1) * col_grid_num_;
         cyl_image_height_ =
             ((cyl_image_height_ - 1) / row_grid_num_ + 1) * row_grid_num_;
 
+        //创建一个圆柱体图像对象CylinderImageGPU_stilib，使用调整后的宽度和高度进行初始化
         cyl_image_ =
             CylinderImageGPU_stilib(cyl_image_height_, cyl_image_width_);
     }
@@ -169,8 +181,11 @@ FishToCylProj::FishToCylProj(const Undistorter& undistorter) {
     m_sub_back_track->AddReceiveCallback(cb);
 }
 
+// 将Mat图像复制到GPU内存中
 void FishToCylProj::setImage(cv::Mat input_img) {
     assert(input_img.rows == view_.height && input_img.cols == view_.width);
+    // cudaMemcpy: CPU和GPU之间的内存复制
+    // cudaMemcpyHostToDevice: CPU内存到GPU内存
     checkCudaErrors(cudaMemcpy(view_.image, input_img.data,
                                view_.width * view_.height * sizeof(uchar3),
                                cudaMemcpyHostToDevice));

@@ -186,7 +186,7 @@ static inline int4 decide_start_end(cv::Mat overlap_mask, cv::Mat mask0,
         }
     }
 
-    std::cout << "overlap_points size " << overlap_points.size() << std::endl;
+    // std::cout << "overlap_points size " << overlap_points.size() << std::endl;
     assert(overlap_points.size() >= 2);
 
     int2 start = overlap_points[0][overlap_points[0].size() / 2];
@@ -218,7 +218,6 @@ static inline void Dijkstra_search_seam(int2 start, int2 end, cv::Mat diff,
     //    visited.at<uchar>(start.x, start.y) = 1;
 
     std::priority_queue<myPair, std::vector<myPair>, cmp> Q;
-
     Q.emplace(0, start);
 
     while (!Q.empty()) {
@@ -294,7 +293,6 @@ static inline void Dijkstra_search_seam(int2 start, int2 end, cv::Mat diff,
 #ifdef PRINT_WEIGHT_ON_SEAM
         printf("%d ", diff.at<ushort>(end_pts.x, end_pts.y));
 #endif
-
         if (end_pts.x == start.x && end_pts.y == start.y)
             break;
 
@@ -312,7 +310,6 @@ static inline void seam_search(int4 endPts, cv::Mat overlap_mask, cv::Mat diff,
                                int seam_mark) {
     int2 start = make_int2(endPts.x, endPts.y);
     int2 end   = make_int2(endPts.z, endPts.w);
-
     Dijkstra_search_seam(start, end, diff, overlap_mask, seam_map, seam_line,
                          seam_mark);
 }

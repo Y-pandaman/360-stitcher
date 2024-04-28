@@ -145,8 +145,8 @@ void AirViewStitcher::init(std::vector<cv::Mat> input_masks,
         endPts_[i] =
             decide_start_end(overlap_masks_[i], scaled_warped_masks_[i],
                              scaled_warped_masks_[j]);
-        printf("i %d start (%d, %d)  end (%d, %d)\n", i, endPts_[i].x,
-               endPts_[i].y, endPts_[i].z, endPts_[i].w);
+        // printf("%d start (%d, %d)  end (%d, %d)\n", i, endPts_[i].x,
+        //        endPts_[i].y, endPts_[i].z, endPts_[i].w);
     }
 
     cv::erode(total_mask_, total_mask_,
@@ -315,11 +315,9 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
 #ifdef OUTPUT_FINAL_DIFF
     diff_final_frame_count++;
 #endif
-
     cv::Mat total_seam_map =
         cv::Mat::ones(scale_height_, scale_width_, CV_8UC1) * 255;
     cv::Mat seam_line = cv::Mat::zeros(scale_height_, scale_width_, CV_8UC1);
-
     for (int i = 0; i < num_view_; i++) {
         cv::Mat overlap_mask = overlap_masks_[i];
         seam_search(endPts_[i], overlap_mask, diffs_map_[i], total_seam_map,

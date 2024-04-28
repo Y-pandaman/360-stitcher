@@ -1,0 +1,16 @@
+%YAML:1.0
+---
+
+# icon_new_height: 216
+# icon_new_width: 453
+icon_new_height:  296  #1758
+icon_new_width:  620 #3684
+send_undistorted_image: 0   # 1 for true, 0 for false
+use_reproj: 0               # for right, left, back undistort method. 0 for cv undistort, 1 for reproject to cylinder
+
+
+
+final_crop_w_left: 0
+final_crop_w_right: 0
+final_crop_h_top: 0
+final_crop_h_bottom: 0
