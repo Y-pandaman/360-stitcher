@@ -3,9 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(pano_code)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "-Wno-unknown-pragmas -Wall -fPIC -pthread -O3")
-add_compile_options(-w)
-add_definitions(-w)
+set(CMAKE_CXX_FLAGS "-Wno-unknown-pragmas -Wall -fPIC -pthread")
 
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)

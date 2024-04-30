@@ -100,6 +100,7 @@ static __global__ void BackProjToSrc_kernel(
                 pixel.y < src_h - 1) {
                 color = Bilinear(src_color, src_h, src_w, pixel);
             }
+            // 将经纬度坐标转换为图像坐标系中的点
             int row = (phi - (*global_min_phi)) / step_y + 0.5;
             int col = (theta - (*global_min_theta)) / step_x + 0.5;
             // 更新纹理坐标
@@ -121,6 +122,7 @@ static __global__ void BackProjToSrc_kernel(
                 color = Bilinear(src_color, src_h, src_w, pixel);
                 m = mask[(int)(pixel.y + 0.5f) * src_w + (int)(pixel.x + 0.5f)];
             }
+            // 将经纬度坐标转换为图像坐标系中的点
             int row = (phi - (*global_min_phi)) / step_y + 0.5;
             int col = (theta - (*global_min_theta)) / step_x + 0.5;
             // 更新纹理坐标
@@ -141,6 +143,11 @@ static __global__ void BackProjToSrc_kernel(
     }
 }
 
+// 将给定视角的图像投影到圆柱体表面上
+// view：一个 ViewGPU_stilib 类型的实例，代表要投影的视角图像及其相关参数。
+// cyl_image：一个引用，指向CylinderImageGPU_stilib类型的实例，代表圆柱体图像及其相关参数。
+// cylinder：一个CylinderGPU_stilib 类型的实例，包含圆柱体的几何参数。
+// cyl_image_width 和 cyl_image_height：圆柱体图像的宽度和高度。
 bool projToCylinderImage_cuda(ViewGPU_stilib view,
                               CylinderImageGPU_stilib& cyl_image,
                               CylinderGPU_stilib& cylinder, int cyl_image_width,
@@ -149,14 +156,22 @@ bool projToCylinderImage_cuda(ViewGPU_stilib view,
     int height = view.height, width = view.width;
     int size_c = cylinder.offset[3];
 
-    int num_thread = 512;
-    int num_block  = min(65535, (size_c + num_thread - 1) / num_thread);
+    int num_thread = 512;   // 设置每个CUDA块中的线程数为512
+    // 计算需要多少个块来处理 size_c，确保不超过CUDA的最大块数限制（65535）
+    int num_block = min(65535, (size_c + num_thread - 1) / num_thread);
+    // 计算投影操作需要多少个块，基于圆柱体图像的总像素数。
     int num_block2 =
         min(65535,
             (cyl_image_width * cyl_image_height + num_thread - 1) / num_thread);
-
+    // 使用 cudaDeviceSynchronize 确保所有先前的CUDA核心操作都已完成，并调用
+    // cudaGetLastError 检查是否有错误发生。
     checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaGetLastError());
+    // 启动CUDA内核
+    // 源图像的颜色数据和掩码。源图像的高度和宽度。 圆柱体和相机的参数。
+    // 圆柱体图像及其掩码。用于计算纹理坐标的数组。
+    // 圆柱体图像的经度和纬度的全局最小值和最大值。
+    // 圆柱体图像的宽度和高度。 一个布尔值，指示是否使用鱼眼投影。
     BackProjToSrc_kernel<<<num_block2, num_thread>>>(
         view.image, view.mask, view.height, view.width, cylinder, view.camera,
         cyl_image.image, cyl_image.mask, cyl_image.uv, cylinder.global_theta,

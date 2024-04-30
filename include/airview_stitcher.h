@@ -15,18 +15,33 @@
 #define NUM_THREAD 512
 #define NUM_BLOCK(x) MIN_VALUE(65535, (x + NUM_THREAD - 1) / NUM_THREAD)
 
-//#define OUTPUT_WARPED_RGB
-//#define OUTPUT_TOTAL_SEAM_MAP
-//#define OUTPUT_DIFF_IMAGE
-//#define OUTPUT_FINAL_DIFF
+// #define OUTPUT_WARPED_RGB
+// #define OUTPUT_TOTAL_SEAM_MAP
+// #define OUTPUT_DIFF_IMAGE
+// #define OUTPUT_FINAL_DIFF
 
+/**
+ * BBox结构体定义了边界框的数据结构，包括视图索引和边界框的四个角点信息。
+ */
 struct BBox {
-    int view_idx;       // 属于哪个view
-    float4 data;        // 4  corners
-    float3* data_ptr;   // 4 lines
+    int view_idx;       // 属于哪个视图的索引
+    float4 data;        // 四个角点的浮点数表示
+    float3* data_ptr;   // 指向四个线段的指针
 
+    /**
+     * BBox的默认构造函数。
+     */
     BBox() { }
+
+    /**
+     * 构造函数，根据给定的信息和视图索引初始化边界框。
+     * @param info 包含边界框中心点坐标和尺寸信息的float4类型。
+     * @param view_idx_ 视图的索引。
+     * @param height 图像的高度。
+     * @param width 图像的宽度。
+     */
     BBox(float4 info, int view_idx_, int height, int width) {
+        // 根据信息计算并设置边界框的四个角点
         float x_center = info.x * width;
         float y_center = info.y * height;
         float x_min    = x_center - info.z * width / 2.0f;
@@ -37,7 +52,13 @@ struct BBox {
         view_idx       = view_idx_;
     }
 
+    /**
+     * 构造函数，根据cv::Rect初始化边界框。
+     * @param input 表示矩形区域的cv::Rect_<int>类型。
+     * @param view_idx_ 视图的索引。
+     */
     BBox(const cv::Rect_<int>& input, int view_idx_) {
+        // 根据矩形区域设置边界框的四个角点
         float x_min = input.x;
         float y_min = input.y;
         float x_max = input.x + input.width;
@@ -46,17 +67,25 @@ struct BBox {
         view_idx    = view_idx_;
     }
 
+    /**
+     * 根据给定的单应性矩阵，获取映射后的四个角点。
+     * @param H 单应性矩阵，是一个3x3的浮点数矩阵。
+     * @param output 用于存储映射后四个角点的数组，数组元素类型为float3。
+     * @return
+     * 成功返回true，表示映射计算完成且结果有效，否则返回false，表示映射过程中发生错误或无法计算。
+     */
     bool get_remapped_points(const cv::Mat& H, float3 output[4]) {
-        // 现在原图转换成框， 然后warp
+        // 计算原图边界框转换后的四个角点，并进行warp变换
+        // 初始化边界框角点坐标
         float x_min = data.x, y_min = data.y, x_max = data.z, y_max = data.w;
 
-        float3 test_point = make_float3(x_min, y_min, 1);
-
+        // 计算单应性矩阵应用后的x方向偏移
         float temp1 =
             -1.0f * H.at<float>(2, 0) * x_min - 1.0f * H.at<float>(2, 2);
         float temp2 =
             -1.0f * H.at<float>(2, 0) * x_max - 1.0f * H.at<float>(2, 2);
 
+        // 根据单应性矩阵调整y_min的值，以确保映射后的点位于图像内
         if (H.at<float>(2, 1) > 0) {
             y_min = min(temp1 / H.at<float>(2, 1), temp2 / H.at<float>(2, 1)) -
                     1.0f;
@@ -64,39 +93,48 @@ struct BBox {
             y_min = max(temp1 / H.at<float>(2, 1), temp2 / H.at<float>(2, 1)) +
                     1.0f;
         } else {
+            // 当单应性矩阵的某个系数为0时，检查是否会导致映射点位于图像边界外
             if (temp1 <= 0 || temp2 <= 0)
                 return false;
         }
 
+        // 执行warp变换并存储结果
+        // 准备原始四个角点坐标
         float3 p[4] = {
             make_float3(x_min, y_min, 1), make_float3(x_max, y_min, 1),
             make_float3(x_max, y_max, 1), make_float3(x_min, y_max, 1)};
 
+        // 对每个角点应用单应性矩阵并规范化坐标
         for (int i = 0; i < 4; i++) {
-            float3 warped_p = homographBased_warp(p[i], H);
+            float3 warped_p = homographBased_warp(p[i], H);   // 应用单应性变换
 
-            assert(warped_p.z < 0);
+            assert(warped_p.z < 0);   // 确保变换后的点位于图像前方
 
+            // 规范化坐标，去除齐次坐标中的z分量
             warped_p.x /= warped_p.z;
             warped_p.y /= warped_p.z;
             warped_p.z = 1;
 
-            output[i] = warped_p;
+            output[i] = warped_p;   // 存储变换后的角点坐标
         }
         return true;
     }
 
+    /**
+     * 根据单应性矩阵，将边界框进行映射变换并存储到data_ptr指向的设备内存中。
+     * @param H 单应性矩阵。
+     * @return 成功返回true，否则返回false。
+     */
     bool remap(cv::Mat H) {
-        // 现在原图转换成框， 然后warp
+        // 计算原图边界框转换后的四个角点，并进行warp变换，结果存储到设备内存中
         float x_min = data.x, y_min = data.y, x_max = data.z, y_max = data.w;
-
-        float3 test_point = make_float3(x_min, y_min, 1);
 
         float temp1 =
             -1.0f * H.at<float>(2, 0) * x_min - 1.0f * H.at<float>(2, 2);
         float temp2 =
             -1.0f * H.at<float>(2, 0) * x_max - 1.0f * H.at<float>(2, 2);
 
+        // 根据单应性矩阵调整y_min的值
         if (H.at<float>(2, 1) > 0) {
             y_min = min(temp1 / H.at<float>(2, 1), temp2 / H.at<float>(2, 1)) -
                     1.0f;
@@ -124,6 +162,7 @@ struct BBox {
 
             warped_ps[i] = warped_p;
         }
+        // 分配设备内存并复制warp变换后的结果
         cudaMalloc((void**)&data_ptr, sizeof(float3) * 4);
         cudaMemcpy(data_ptr, warped_ps, sizeof(float3) * 4,
                    cudaMemcpyHostToDevice);
@@ -131,6 +170,9 @@ struct BBox {
         return true;
     }
 
+    /**
+     * 释放由remap方法分配的设备内存。
+     */
     void free() {
         cudaFree(data_ptr);
     }

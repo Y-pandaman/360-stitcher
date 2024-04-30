@@ -40,26 +40,46 @@ bool Undistorter::getMapForRemapping(float new_size_factor, float balance) {
     return true;
 }
 
+/**
+ * 该函数用于对图像进行去畸变处理。
+ * 
+ * @param input_image 输入图像，需要进行去畸变处理的原始图像。
+ * @param output_image 输出图像，经过去畸变处理后的图像。
+ * @return 成功返回true，如果无法初始化映射或映射获取失败则返回false。
+ */
 bool Undistorter::undistortImage(cv::Mat input_image, cv::Mat& output_image) {
+    // 检查映射是否已经初始化，如果未初始化则尝试获取映射
     if (!map_inited) {
-        bool flag = getMapForRemapping();
-        if (!flag)
+        bool flag = getMapForRemapping(); // 尝试获取用于映射的参数
+        if (!flag) // 如果获取失败，则返回false
             return false;
     }
+    // 使用remap函数对图像进行去畸变处理
     cv::remap(input_image, output_image, map1, map2, cv::INTER_LINEAR);
     return true;
 }
-
+/**
+ * 获取经过畸变矫正的掩码图像。
+ *
+ * @param out_mask
+ * 引用，用于存储输出的掩码图像。掩码图像为8位单通道图像，初始值为全1矩阵。
+ * @return 成功返回true，如果未初始化映射或掩码未生成则返回false。
+ */
 bool Undistorter::getMask(cv::Mat& out_mask) {
+    // 检查映射是否已初始化
     if (!map_inited)
         return false;
+
+    // 如果掩码未生成，生成并存储掩码
     if (!mask_generated) {
-        mask = cv::Mat::ones(input_image_size, CV_8UC1) * 255;
-        cv::remap(mask, mask, map1, map2, cv::INTER_LINEAR);
-        mask_generated = true;
+        mask =
+            cv::Mat::ones(input_image_size, CV_8UC1) * 255;   // 创建初始全1掩码
+        cv::remap(mask, mask, map1, map2,
+                  cv::INTER_LINEAR);   // 应用映射进行畸变矫正
+        mask_generated = true;         // 标记掩码为已生成
     }
 
-    out_mask = mask.clone();
+    out_mask = mask.clone();   // 复制掩码到输出参数
     return true;
 }
 
@@ -196,9 +216,10 @@ void FishToCylProj::setImage(cv::Mat input_img) {
                                cudaMemcpyHostToDevice));
 }
 
+// 获取投影后的图像
 cv::Mat FishToCylProj::getProjectedImage() {
     cv::Mat img, mask;
-    float factor = 0.0;
+    // 将GPU上的图像数据和掩码数据复制到CPU内存中的img和mask变量
     view_.toCPU(img, mask);
     cv::Mat result_img = img.clone();
     return result_img;

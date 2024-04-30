@@ -1,7 +1,7 @@
 #include "Config.h"
 
 Config::Config() {
-    load_config_file("../parameters/yamls/config.yaml");
+    load_config_file("../assets/yamls/config.yaml");
 }
 
 bool Config::load_config_file(const std::string& file_path) {
@@ -13,9 +13,6 @@ bool Config::load_config_file(const std::string& file_path) {
 
     fs["icon_new_height"] >> icon_new_height;
     fs["icon_new_width"] >> icon_new_width;
-    fs["send_undistorted_image"] >> send_undistorted_image;
-
-    fs["use_reproj"] >> use_reproj;
 
     fs["final_crop_w_left"] >> final_crop_w_left;
     fs["final_crop_w_right"] >> final_crop_w_right;

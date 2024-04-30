@@ -1,12 +1,3 @@
-/*
- * @Author: 姚潘涛
- * @Date: 2024-04-25 20:53:47
- * @LastEditors: 姚潘涛
- * @LastEditTime: 2024-04-26 17:07:06
- * @Description: 
- * 
- * Copyright (c) 2024 by pandaman, All Rights Reserved. 
- */
 #pragma once
 
 #include <string>
@@ -59,7 +50,7 @@ struct CylinderImageGPU {
         uchar3 *data_rgb;
         uchar *data_mask;
 
-        printf("toCPU() height: %d, width: %d\n", height, width);
+        // printf("toCPU() height: %d, width: %d\n", height, width);
 
         checkCudaErrors(cudaHostAlloc((void **) &data_rgb, sizeof(uchar3) * height * width, cudaHostAllocDefault));
         checkCudaErrors(cudaHostAlloc((void **) &data_mask, sizeof(uchar) * height * width, cudaHostAllocDefault));

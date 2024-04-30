@@ -21,25 +21,37 @@ bool GstReceiver::initialize(const std::string& url_, int queue_size_) {
     return true;
 }
 
+/**
+ * @brief 启动接收工作线程
+ *
+ * 该函数用于启动一个工作线程，用于抓取和处理视频流。在启动前，会检查当前状态，
+ * 仅当状态为未初始化（UNINITIALIZED）时返回错误。如果状态为初始化（INITIALIZED）
+ * 或停止（STOP），则会尝试重新打开视频源，并启动抓取视频的工作线程。
+ *
+ * @return bool - 如果成功启动工作线程，返回true；否则返回false。
+ */
 bool GstReceiver::startReceiveWorker() {
     if (status == UNINITIALIZED) {
-        return false;
+        return false;   // 当状态为未初始化时，直接返回错误
     }
     if (status == INITIALIZED || status == STOP) {
-        frame_count = 0;
+        frame_count = 0;   // 重置帧计数
+        // 检查视频源是否成功打开
         if (!video_capture.isOpened()) {
             printf("can't open %s \n", this->video_url.c_str());
-            return false;
+            return false;   // 如果无法打开视频源，返回错误
         }
+        // 获取视频高度和宽度
         video_height = video_capture.get(cv::CAP_PROP_FRAME_HEIGHT);
         video_width  = video_capture.get(cv::CAP_PROP_FRAME_WIDTH);
-        p_write = p_read = 0;
-        // 开启抓取视频线程
+        p_write = p_read = 0;   // 重置指针位置
+
+        // 启动视频抓取工作线程
         thread_receive_worker =
             new std::thread(&GstReceiver::receiveWorker, this);
-        status = RUN;
+        status = RUN;   // 更新状态为运行中
     }
-    return true;
+    return true;   // 成功启动工作线程，返回成功
 }
 
 void GstReceiver::receiveWorker() {
@@ -107,19 +119,37 @@ GstReceiver::~GstReceiver() {
     delete yolo_detector;
 }
 
-// 获取当前图像帧
+/**
+ * 从图像队列中获取一张Mat图像。
+ * 此函数是线程安全的，会等待直到队列中有图像可用。
+ *
+ * @return cv::Mat 返回从队列中获取到的图像Mat对象。
+ */
 cv::Mat GstReceiver::getImageMat() {
     cv::Mat result;
+
+    // 如果队列中的图像数量大于等于1，则准备读取最新的一帧图像
     if (p_write >= 1)
         p_read = p_write - 1;
+
+    // 计算当前要读取的队列位置
     int pos = p_read % queue_size;
+
+    // 加锁以保护图像队列，确保线程安全
     std::unique_lock<std::mutex> locker(mutex_on_image_queue[pos]);
+
+    // 等待直到队列中有图像可供读取
     while (p_read >= p_write) {
         cond_image_queue_not_empty.wait(locker);
     }
+
+    // 从队列中克隆出图像，并更新读取位置
     result = image_queue[pos].clone();
     p_read = (p_read + 1);
+
+    // 解锁图像队列
     locker.unlock();
+
     return result;
 }
 

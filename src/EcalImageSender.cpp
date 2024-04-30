@@ -2,15 +2,11 @@
  * @Author: 姚潘涛
  * @Date: 2024-04-23 19:16:24
  * @LastEditors: 姚潘涛
- * @LastEditTime: 2024-04-25 16:50:32
+ * @LastEditTime: 2024-04-30 10:16:10
  * @Description:
  *
  * Copyright (c) 2024 by pandaman, All Rights Reserved.
  */
-//
-// Created by touch on 22-11-29.
-//
-
 #include "EcalImageSender.h"
 
 EcalImageSender::EcalImageSender(int argc, char** argv) { }
