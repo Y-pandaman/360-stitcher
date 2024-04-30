@@ -82,83 +82,6 @@ static inline bool is_boundary(cv::Mat src, int i, int j) {
     return false;
 }
 
-static inline int count_mask(cv::Mat mask, int thresh = 128) {
-    int count = 0;
-    for (int i = 0; i < mask.rows; i++) {
-        for (int j = 0; j < mask.cols; j++) {
-            if (mask.at<uchar>(i, j) > thresh)
-                count++;
-        }
-    }
-    return count;
-}
-
-static inline bool get_overlapMask(std::vector<cv::Mat>& masks,
-                                   std::vector<cv::Mat>& overlap_masks) {
-    for (int i = 0; i < masks.size(); i++) {
-        int j               = (i + 1) % masks.size();
-        int k               = (j + 1) % masks.size();
-        cv::Mat tri_overlap = masks[i] & masks[j] & masks[k];
-        int count           = count_mask(tri_overlap);
-        if (count > 0) {
-            printf("%d, %d, %d mask -> tri overlap\n", i, j, k);
-
-            int count_i = count_mask(masks[i]);
-            int count_j = count_mask(masks[j]);
-            int count_k = count_mask(masks[k]);
-            if (count_i > count_j) {
-                if (count_i > count_k) {
-                    masks[i] = masks[i] - tri_overlap;
-                } else {
-                    masks[k] = masks[k] - tri_overlap;
-                }
-            } else {
-                if (count_j > count_k) {
-                    masks[j] = masks[j] - tri_overlap;
-                } else {
-                    masks[k] = masks[k] - tri_overlap;
-                }
-            }
-        }
-    }
-    return true;
-}
-
-static inline bool adjust_overlapmask(cv::Mat& a, cv::Mat& b) {
-    assert(a.rows == b.rows && a.cols == b.cols);
-
-    cv::Mat c       = a & b;
-    bool is_overlap = false;
-    for (int i = 0; i < c.rows && !is_overlap; i++) {
-        for (int j = 0; j < c.cols; j++) {
-            if (c.at<uchar>(i, j) > 128) {
-                is_overlap = true;
-                break;
-            }
-        }
-    }
-
-    if (!is_overlap)
-        return is_overlap;
-
-    int count_a = 0, count_b = 0;
-    for (int i = 0; i < a.rows; i++) {
-        for (int j = 0; j < a.cols; j++) {
-            if (a.at<uchar>(i, j) > 128)
-                count_a++;
-            if (b.at<uchar>(i, j) > 128)
-                count_b++;
-        }
-    }
-
-    if (count_a > count_b) {
-        a = a - c;
-    } else {
-        b = b - c;
-    }
-    return is_overlap;
-}
-
 /**
  * 深度优先搜索收集重叠点
  *
@@ -506,7 +429,7 @@ gen_seam_mask(cv::Mat total_mask, cv::Mat total_seam_map, int num_view) {
 
             // 标记哪个视图的接缝通过当前像素
             std::vector<bool> seam_flag(num_view);
-            for (int k = 0; k < seam_flag.size(); k++) {
+            for (uint64_t k = 0; k < seam_flag.size(); k++) {
                 seam_flag[k] = false;
             }
 
@@ -524,7 +447,7 @@ gen_seam_mask(cv::Mat total_mask, cv::Mat total_seam_map, int num_view) {
                 else if (seam_flag[1])
                     seam_masks[1] = cur_seam_mask;
             } else {
-                for (int k = 1; k < seam_flag.size() - 1; k++) {
+                for (uint64_t k = 1; k < seam_flag.size() - 1; k++) {
                     if ((seam_flag[k] == 1) && (seam_flag[k + 1] == 1)) {
                         seam_masks[k + 1] = cur_seam_mask;
                         break;
@@ -551,7 +474,7 @@ static inline void allocate_seam_masks_GPU(std::vector<cv::Mat> seam_masks_cpu,
                                            std::vector<uchar*> seam_masks,
                                            int scale) {
     // 遍历每一张接缝掩码图像，将其放大并传输到GPU
-    for (int i = 0; i < seam_masks_cpu.size(); i++) {
+    for (uint64_t i = 0; i < seam_masks_cpu.size(); i++) {
         cv::Mat mask; // 用于存储放大的掩码图像
         // 将原始掩码图像放大到指定尺度
         cv::resize(seam_masks_cpu[i], mask,

@@ -42,7 +42,6 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     cudaEvent_t start, stop;
     checkCudaErrors(cudaEventCreate(&start));
     checkCudaErrors(cudaEventCreate(&stop));
-    float milliseconds = 0;
 
     // 加载内参文件
     std::filesystem::path yamls_dir(parameters_dir);
@@ -61,7 +60,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     EcalImageSender ecal_image_sender;
     ecal_image_sender.open("overlook_switcher");   // 定义一个ecal发布器
 
-    for (int i = 0; i < camera_idx_vec.size(); i++) {
+    for (uint64_t i = 0; i < camera_idx_vec.size(); i++) {
         std::filesystem::path yaml_path(yamls_dir);
         yaml_path.append("camera_" + std::to_string(camera_idx_vec[i]) +
                          "_intrin.yaml");
@@ -110,7 +109,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 #ifdef USE_VIDEO_INPUT
     std::vector<cv::VideoCapture> video_capture_vec(camera_idx_vec.size());
 
-    for (int i = 0; i < camera_idx_vec.size(); i++) {
+    for (uint64_t i = 0; i < camera_idx_vec.size(); i++) {
         std::filesystem::path video_path(data_root_dir);
         video_path.append("camera_video_" + std::to_string(camera_idx_vec[i]) +
                           ".avi");
@@ -217,11 +216,11 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     std::vector<cv::Mat> masks(camera_idx_vec.size());
     std::vector<cv::Mat> Hs(camera_idx_vec.size());
 
-    int window_size = 30;
+    uint64_t window_size = 30;
     std::queue<float> time_window;
     float time_sum = 0;
 
-    for (int i = 0; i < camera_idx_vec.size(); ++i) {
+    for (uint64_t i = 0; i < camera_idx_vec.size(); ++i) {
         cv::Mat mask_image;
         undistorter_vec[i].getMask(mask_image);   // 获取去畸变的掩码图像
 
@@ -312,7 +311,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         // 使用图像文件
 #ifdef USE_VIDEO_INPUT
         // 遍历所有摄像头索引，尝试从每个摄像头读取一帧图像
-        for (int i = 0; i < camera_idx_vec.size(); i++) {
+        for (uint64_t i = 0; i < camera_idx_vec.size(); i++) {
             // 尝试读取视频帧，如果读取失败（视频结束），则将视频指针重置为第一帧，并再次尝试读取
             video_done_flag = !video_capture_vec[i].read(input_img_vec[i]);
             if (video_done_flag) {
@@ -360,7 +359,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
 // 重置图像尺寸
 #ifdef USE_720P
-        for (int i = 0; i < input_img_vec.size(); i++) {
+        for (uint64_t i = 0; i < input_img_vec.size(); i++) {
             if (input_img_vec[i].rows != 720)
                 cv::resize(input_img_vec[i], input_img_vec[i],
                            cv::Size(1280, 720));
@@ -369,7 +368,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 #endif   // USE_720P
 
         // 遍历输入图像向量，并对每张图像进行去畸变处理
-        for (int i = 0; i < input_img_vec.size(); i++) {
+        for (uint64_t i = 0; i < input_img_vec.size(); i++) {
             // 对当前图像进行去畸变处理
             undistorter_vec[i].undistortImage(input_img_vec[i],
                                               undistorted_img_vec[i]);
@@ -381,7 +380,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         }
 
         // 遍历输入图像向量，对每张图像进行YOLO检测，并处理检测结果
-        for (int i = 0; i < input_img_vec.size(); i++) {
+        for (uint64_t i = 0; i < input_img_vec.size(); i++) {
             // 使用YOLO检测算法对当前图像进行物体检测，并获取检测结果
             struct_yolo_result yolo_result =
                 yolo_detect.detect_bbox(undistorted_img_vec[i]);
@@ -411,7 +410,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
             // 初始化存储检测框的向量
             std::vector<BBox> temp;
             // 遍历当前图像的检测结果，将每个检测框与对应图像的索引封装成BBox对象，并加入向量中
-            for (int j = 0; j < yolo_result.result.size(); j++) {
+            for (uint64_t j = 0; j < yolo_result.result.size(); j++) {
                 temp.emplace_back(BBox(yolo_result.result[j].box, i));
             }
             // 将当前图像的检测框向量存入总的结果向量中
@@ -489,12 +488,12 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         bool intersect_warning = false;
 
         // 遍历所有bounding boxes来检查相交情况
-        for (int i = 0; i < bboxs.size(); i++) {
+        for (uint64_t i = 0; i < bboxs.size(); i++) {
             // 如果已经检测到相交，则跳出循环
             if (intersect_warning)
                 break;
             // 遍历当前bounding box中的所有点
-            for (int j = 0; j < bboxs[i].size(); j++) {
+            for (uint64_t j = 0; j < bboxs[i].size(); j++) {
                 float3 warped_ps[4];
                 // 如果无法获取重映射点，则跳过当前点
                 if (!bboxs[i][j].get_remapped_points(Hs[i], warped_ps))
@@ -548,7 +547,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
             time_window.pop();
         }
         float mean_time = time_sum / time_window.size();
-        LOG_F(INFO, "mean time cost: %fms in %d frames", mean_time,
+        LOG_F(INFO, "mean time cost: %fms in %ld frames", mean_time,
               window_size);
     }
     delete As;

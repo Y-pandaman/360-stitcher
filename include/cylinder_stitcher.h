@@ -1,8 +1,8 @@
 #pragma once
 
+#pragma nv_diag_suppress 177
 #include <string>
 #include <opencv2/opencv.hpp>
-#include <Eigen/Eigen>
 #include <thrust/extrema.h>
 #include "math_utils.h"
 

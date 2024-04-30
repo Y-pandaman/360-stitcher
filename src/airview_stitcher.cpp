@@ -77,7 +77,7 @@ AirViewStitcher::AirViewStitcher(int num_view, int src_height, int src_width,
         printf("CUDA Error: %s\n", cudaGetErrorString(err));
         printf("[ERROR] Create AirViewStitcher failed !!! \n");
     } else {
-        LOG_F(INFO, "Create AirViewStitcher successfully!  num_view: %d",
+        LOG_F(INFO, "Create AirViewStitcher successfully!  num_view: %ld",
               num_view_);
     }
 }
@@ -139,7 +139,7 @@ void AirViewStitcher::init(std::vector<cv::Mat> input_masks,
     scaled_warped_masks_.resize(num_view_);
 
     // 遍历每个视图进行处理
-    for (int i = 0; i < num_view_; i++) {
+    for (uint64_t i = 0; i < num_view_; i++) {
         // 存储变换矩阵
         // Hs_forward_.emplace_back(input_Hs[i]);
         // 将掩码数据从主机内存拷贝到设备内存
@@ -192,7 +192,7 @@ void AirViewStitcher::init(std::vector<cv::Mat> input_masks,
     bound_mask_ = cv::Mat::ones(scale_height_, scale_width_, CV_8UC1) * 255;
 
     // 计算视图间的重叠区域和更新总掩码
-    for (int i = 0; i < num_view_; i++) {
+    for (uint64_t i = 0; i < num_view_; i++) {
         int j = (i + 1) % num_view_;
 
         overlap_masks_[i] = scaled_warped_masks_[i] & scaled_warped_masks_[j];
@@ -201,12 +201,12 @@ void AirViewStitcher::init(std::vector<cv::Mat> input_masks,
     }
 
     // 搜索每个重叠区域的起始和结束点
-    for (int i = 0; i < num_view_; i++) {
+    for (uint64_t i = 0; i < num_view_; i++) {
         int j = (i + 1) % num_view_;
         endPts_[i] =
             decide_start_end(overlap_masks_[i], scaled_warped_masks_[i],
                              scaled_warped_masks_[j]);
-        LOG_F(INFO, "%d start (%d, %d) end (%d, %d)", i, endPts_[i].x,
+        LOG_F(INFO, "%ld start (%d, %d) end (%d, %d)", i, endPts_[i].x,
               endPts_[i].y, endPts_[i].z, endPts_[i].w);
     }
 
@@ -223,7 +223,7 @@ void AirViewStitcher::init(std::vector<cv::Mat> input_masks,
         printf("CUDA Error: %s\n", cudaGetErrorString(err));
         printf("[ERROR] Init AirViewStitcher failed !!! \n");
     } else {
-        LOG_F(INFO, "Init AirViewStitcher successfully! num_view: %d",
+        LOG_F(INFO, "Init AirViewStitcher successfully! num_view: %ld",
               num_view_);
     }
 }
@@ -247,7 +247,7 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
 #endif
 
     // 遍历所有视图，执行图像预处理步骤
-    for (int i = 0; i < num_view_; i++) {
+    for (uint64_t i = 0; i < num_view_; i++) {
         // 将图像数据从主机内存复制到设备内存
         checkCudaErrors(
             cudaMemcpy(inputs_[i].image, input_img[i].ptr<uchar3>(0),
@@ -299,7 +299,7 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
     static cv::Mat prev_frame_seam;
 
     // 计算所有视图两两之间的差异图像
-    for (int i = 0; i < num_view_; i++) {
+    for (uint64_t i = 0; i < num_view_; i++) {
         int j = (i + 1) % num_view_;
         compute_diff(scaled_rgbs_[i], scaled_rgbs_[j], diffs_[i],
                      temp_diffs_[i], scale_height_, scale_width_);
@@ -352,12 +352,12 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
         // 更新相邻两个图像中人物区域的差异值
         std::vector<BBox> boundingboxs_i = bboxs[i];
         std::vector<BBox> boundingboxs_j = bboxs[j];
-        for (int k = 0; k < boundingboxs_i.size(); k++) {
+        for (uint64_t k = 0; k < boundingboxs_i.size(); k++) {
             update_diff_in_person_area(diffs_[i], grids_[i], down_scale_seam_,
                                        boundingboxs_i[k].data, scale_height_,
                                        scale_width_);
         }
-        for (int k = 0; k < boundingboxs_j.size(); k++) {
+        for (uint64_t k = 0; k < boundingboxs_j.size(); k++) {
             update_diff_in_person_area(diffs_[i], grids_[j], down_scale_seam_,
                                        boundingboxs_j[k].data, scale_height_,
                                        scale_width_);
@@ -411,7 +411,7 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
     cv::Mat total_seam_map =
         cv::Mat::ones(scale_height_, scale_width_, CV_8UC1) * 255;
     cv::Mat seam_line = cv::Mat::zeros(scale_height_, scale_width_, CV_8UC1);
-    for (int i = 0; i < num_view_; i++) {
+    for (uint64_t i = 0; i < num_view_; i++) {
         cv::Mat overlap_mask = overlap_masks_[i];
         seam_search(endPts_[i], overlap_mask, diffs_map_[i], total_seam_map,
                     seam_line, i);

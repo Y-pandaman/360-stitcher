@@ -78,7 +78,7 @@ __global__ void convertBack_kernel_6(short3* src, uchar3* dst, uchar* mask0,
 
 /**
  * @brief 根据给定的mask将short3数据转换为uchar3格式，并应用到指定的目标数组中。
- * 
+ *
  * @param src 源数据数组，类型为short3，表示需要转换的原始图像数据。
  * @param dst 目标数据数组，类型为uchar3，用于存储转换后的图像数据。
  * @param mask0 到mask3 分别为4个掩码数组，类型为uchar，用于选择像素是否被处理。
@@ -93,15 +93,16 @@ __global__ void convertBack_kernel_6(short3* src, uchar3* dst, uchar* mask0,
 __global__ void convertBack_kernel_4(short3* src, uchar3* dst, uchar* mask0,
                                      uchar* mask1, uchar* mask2, uchar* mask3,
                                      int height, int width) {
-    int pixelIdx     = threadIdx.x + blockIdx.x * blockDim.x; // 计算当前线程处理的像素索引
-    int total_thread = blockDim.x * gridDim.x; // 计算总线程数
-    int totalPixel   = height * width; // 计算图像总像素数
-    
-    while (pixelIdx < totalPixel) { // 循环处理所有像素
+    int pixelIdx =
+        threadIdx.x + blockIdx.x * blockDim.x;   // 计算当前线程处理的像素索引
+    int total_thread = blockDim.x * gridDim.x;   // 计算总线程数
+    int totalPixel   = height * width;           // 计算图像总像素数
+
+    while (pixelIdx < totalPixel) {   // 循环处理所有像素
         // 根据mask确定当前像素是否被处理
         int remian = mask0[pixelIdx] / 255 | mask1[pixelIdx] / 255 |
                      mask2[pixelIdx] / 255 | mask3[pixelIdx] / 255;
-        
+
         // 对R、G、B通道分别进行转换处理并更新到dst中
         dst[pixelIdx].x = remian *
                           clamp((float)src[pixelIdx].x, 0.0f, 32767.0f) /
@@ -112,8 +113,8 @@ __global__ void convertBack_kernel_4(short3* src, uchar3* dst, uchar* mask0,
         dst[pixelIdx].z = remian *
                           clamp((float)src[pixelIdx].z, 0.0f, 32767.0f) /
                           32767.0f * 255.0f;
-        
-        pixelIdx += total_thread; // 更新处理的像素索引
+
+        pixelIdx += total_thread;   // 更新处理的像素索引
     }
 }
 
@@ -188,6 +189,7 @@ Each thread is responsible for each pixel in high level (low resolution).
  */
 template <int CHANNEL>
 __global__ void PyrDown_kernel(short* src, short* dst, int height, int width) {
+    // printf("fo02 ");
     // 计算当前线程处理的像素索引和总计数线程数
     int pixelIdx     = threadIdx.x + blockIdx.x * blockDim.x;
     int total_thread = blockDim.x * gridDim.x;
@@ -196,9 +198,8 @@ __global__ void PyrDown_kernel(short* src, short* dst, int height, int width) {
     // 循环处理所有像素
     while (pixelIdx < totalPixel) {
         // 计算输入像素的坐标和索引
-        int src_x        = 2 * (pixelIdx % width);
-        int src_y        = 2 * (pixelIdx / width);
-        int src_pixelIdx = src_y * (width * 2) + src_x;
+        int src_x = 2 * (pixelIdx % width);
+        int src_y = 2 * (pixelIdx / width);
 
         // 初始化颜色数组和权重
         float color[CHANNEL];
@@ -230,7 +231,6 @@ __global__ void PyrDown_kernel(short* src, short* dst, int height, int width) {
         }
 
         // 根据权重平均颜色值，并存储到输出图像中
-#pragma unroll
         if (weight == 0) {
             // 如果权重为 0，则将像素设置为无效值 -32768
             for (int i = 0; i < CHANNEL; i++) {
@@ -364,10 +364,8 @@ __global__ void WeightedBlend_kernel_4(short3* I0, short* mask0, short3* I1,
     int total_thread = blockDim.x * gridDim.x;   // 计算总线程数
     int totalPixel   = height * width;           // 计算图像总像素数
 
-    while (pixelIdx < totalPixel) {   // 遍历所有像素
-        int x = pixelIdx % width;     // 计算当前像素的x坐标
-        int y = pixelIdx / width;     // 计算当前像素的y坐标
-
+    // 遍历所有像素
+    while (pixelIdx < totalPixel) {
         // 计算四个图像对应像素的权重
         float w0      = (float)mask0[pixelIdx] / 32767.0f;
         float w1      = (float)mask1[pixelIdx] / 32767.0f;
@@ -432,10 +430,8 @@ __global__ void WeightedBlend_kernel_6(short3* I0, short* mask0, short3* I1,
     int total_thread = blockDim.x * gridDim.x;   // 计算总线程数
     int totalPixel   = height * width;           // 计算图像总像素数
 
-    while (pixelIdx < totalPixel) {   // 循环处理所有像素
-        int x = pixelIdx % width;     // 计算当前像素的x坐标
-        int y = pixelIdx / width;     // 计算当前像素的y坐标
-
+    // 循环处理所有像素
+    while (pixelIdx < totalPixel) {
         // 计算每幅图像对应像素的权重
         float w0 = (float)mask0[pixelIdx] / 32767.0f;
         float w1 = (float)mask1[pixelIdx] / 32767.0f;
@@ -570,7 +566,8 @@ BlendPyramid(std::vector<std::vector<SeamImageGPU>>& pyr_imgs) {
     int num_thread = 512;   // 定义每个块中线程的数量
 
     std::vector<SeamImageGPU> blendedPyramid;   // 存储合并后的图像金字塔
-    for (int i = 0; i < pyr_imgs[0].size(); i++) {   // 遍历图像金字塔的每一层
+    // 遍历图像金字塔的每一层
+    for (uint64_t i = 0; i < pyr_imgs[0].size(); i++) {
         int num_block =   // 计算执行混合操作所需块的数量
             min(65535, (pyr_imgs[0][i].height * pyr_imgs[0][i].width +
                         num_thread - 1) /
@@ -657,7 +654,7 @@ __host__ void MultiBandBlend_cuda(std::vector<CylinderImageGPU> cylImages,
 
     // 为每张图像构建拉普拉斯金字塔
     std::vector<std::vector<SeamImageGPU>> pyr_imgs(cylImages.size());
-    for (int i = 0; i < cylImages.size(); i++) {
+    for (uint64_t i = 0; i < cylImages.size(); i++) {
         pyr_imgs[i] = LaplacianPyramid(cylImages[i], seam_masks[i], levels);
     }
 
@@ -668,8 +665,8 @@ __host__ void MultiBandBlend_cuda(std::vector<CylinderImageGPU> cylImages,
     CollapsePyramid(blendedPyramid, cylImages);
 
     // 清理金字塔数据，释放内存
-    for (int i = 0; i < pyr_imgs.size(); i++) {
-        for (int j = 0; j < pyr_imgs[i].size(); j++) {
+    for (uint64_t i = 0; i < pyr_imgs.size(); i++) {
+        for (uint64_t j = 0; j < pyr_imgs[i].size(); j++) {
             pyr_imgs[i][j].clear();
         }
     }

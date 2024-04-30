@@ -24,7 +24,6 @@ public:
     void setUndistorter(const std::string& intrin_file_path,
                         float new_size_factor = 1.0, float balance = 0.0,
                         bool USE_720P = false);
-    void setYoloDetector(const std::string& weight_file_path);
 
 private:
     int frame_count = 0;

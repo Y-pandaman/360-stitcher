@@ -36,8 +36,8 @@ static inline __device__ void Bilinear(T* src, T* dst, int h, int w,
     // 计算四个邻近像素的坐标
     int x0 = (int)pixel.x;
     int y0 = (int)pixel.y;
-    int x1 = x0 + 1;
-    int y1 = y0 + 1;
+    // int x1 = x0 + 1;
+    // int y1 = y0 + 1;
     // 计算像素点在小数部分的偏移
     float x = pixel.x - x0;
     float y = pixel.y - y0;
@@ -193,6 +193,7 @@ Each thread is responsible for each pixel in high level (low resolution).
  */
 template <int CHANNEL>
 __global__ void PyrDown_kernel(short* src, short* dst, int height, int width) {
+    // printf("foo1 ");
     // 计算当前线程处理的像素点索引和总计线程数
     int pixelIdx     = threadIdx.x + blockIdx.x * blockDim.x;
     int total_thread = blockDim.x * gridDim.x;
@@ -203,7 +204,6 @@ __global__ void PyrDown_kernel(short* src, short* dst, int height, int width) {
         // 计算原始图像中对应当前像素点的坐标和索引
         int src_x        = 2 * (pixelIdx % width);
         int src_y        = 2 * (pixelIdx / width);
-        int src_pixelIdx = src_y * (width * 2) + src_x;
 
         // 初始化颜色数组和权重
         float color[CHANNEL];
@@ -523,63 +523,112 @@ __global__ void draw_car_kernel(uchar3* img, uchar4* icon, int icon_h,
     }
 }
 
+/**
+ * 在图像上绘制一个圆形。
+ *
+ * @param img 指向图像数据的指针，图像格式为uchar3（RGB）。
+ * @param center 圆心的坐标，类型为float2（x, y）。
+ * @param radius 圆的半径。
+ * @param thickness 圆边的厚度。
+ * @param height 图像的高度。
+ * @param width 图像的宽度。
+ *
+ * 该函数使用CUDA并行计算的方式，在给定的图像上绘制指定半径和厚度的圆形。
+ * 每个线程处理图像中的一个像素，通过计算像素到圆心的距离来确定是否应该将该像素涂色。
+ */
+
 __global__ void draw_circle_kernel(uchar3* img, float2 center, float radius,
                                    int thickness, int height, int width) {
+    // 计算当前线程处理的像素索引和总计线程数
     int pixelIdx     = threadIdx.x + blockIdx.x * blockDim.x;
     int total_thread = blockDim.x * gridDim.x;
-    int totalPixel   = height * width;
+    int totalPixel   = height * width;   // 图像总像素数
+
+    // 循环处理所有像素
     while (pixelIdx < totalPixel) {
+        // 计算当前像素的坐标
         int x = pixelIdx % width;
         int y = pixelIdx / width;
 
+        // 计算当前像素到圆心的距离
         float dis = sqrt((x - center.x) * (x - center.x) +
                          (y - center.y) * (y - center.y));
-        dis       = fabs(dis - radius);
+        // 调整距离，以处理圆边厚度
+        dis = fabs(dis - radius);
 
+        // 如果像素在圆边内，则涂上指定颜色（CIRCLE_COLOR需在函数外定义）
         if (dis <= thickness) {
             img[pixelIdx] = CIRCLE_COLOR;
         }
 
+        // 更新像素索引，准备处理下一个像素
         pixelIdx += total_thread;
     }
 }
 
-__global__ void draw_bbox_kernel(uchar3* img,
-                                 float3* data,   // bbox的四个点
-                                 float2* grid, uchar* seam_mask, int thickness,
-                                 int height, int width) {
+/**
+ * 在图像中绘制边界框
+ *
+ * 该内核函数用于通过给定的边界框数据，在图像中绘制边界框。边界框由四个点定义，绘制的边界框宽度由thickness参数指定。
+ *
+ * @param img 指向图像像素数据的指针，类型为uchar3，表示RGB颜色。
+ * @param data 指向边界框四个点数据的指针，类型为float3，表示三维坐标。
+ * @param grid 指向网格信息的指针，类型为float2，未在函数中使用。
+ * @param seam_mask 指向像素掩码的指针，类型为uchar，用于标识像素是否被选中。
+ * @param thickness 边界框的绘制厚度。
+ * @param height 图像的高度。
+ * @param width 图像的宽度。
+ */
+__global__ void draw_bbox_kernel(uchar3* img, float3* data, float2* grid,
+                                 uchar* seam_mask, int thickness, int height,
+                                 int width) {
+    // 计算当前线程处理的像素索引和总线程数
     int pixelIdx     = threadIdx.x + blockIdx.x * blockDim.x;
     int total_thread = blockDim.x * gridDim.x;
     int totalPixel   = height * width;
+
+    // 遍历所有像素，直到处理完所有像素
     while (pixelIdx < totalPixel) {
+        // 计算当前像素的x和y坐标
         int x = pixelIdx % width;
         int y = pixelIdx / width;
 
+        // 定义当前像素点的三维坐标
         float3 p = make_float3(x, y, 1.0f);
 
+        // 遍历边界框的四条边
 #pragma unroll
         for (int i = 0; i < 4; i++) {
             int j = (i + 1) % 4;
 
+            // 获取边界框的两个点
             float3 a = data[i];
             float3 b = data[j];
 
+            // 计算两点确定的直线向量
             float3 l = cross(a, b);
 
+            // 计算当前像素点到直线的距离
             float dis = point2line_dis(l, p);
 
+            // 如果距离大于指定的厚度，则跳过当前边的处理
             if (dis > thickness)
                 continue;
 
+            // 计算两条方向向量，用于判断像素点是否位于直线的两侧
             float3 La = make_float3(-1.0f * l.y, l.x, l.y * a.x - l.x * a.y);
             float3 Lb = make_float3(-1.0f * l.y, l.x, l.y * b.x - l.x * b.y);
 
+            // 判断像素点是否位于边界框内部
             bool inside = dot(La, p) * dot(Lb, p) < 0 ? true : false;
+
+            // 如果像素位于边界框内部且不在缝合掩码标记的位置上，则设置为边界框颜色
             if (inside && seam_mask[pixelIdx] != 0) {
                 img[pixelIdx] = BBOX_COLOR;
             }
         }
 
+        // 更新像素索引，进行下一个像素的处理
         pixelIdx += total_thread;
     }
 }
@@ -748,19 +797,55 @@ void update_diff_in_person_area(ushort* diff, float2* grid, int scale,
     checkCudaErrors(cudaGetLastError());
 }
 
+/**
+ * 在图像上绘制一个圆。
+ *
+ * @param img 指向图像数据的uchar3指针，图像每个像素由RGB三个通道组成。
+ * @param center 圆心的坐标，float2类型，x和y分别代表横纵坐标。
+ * @param radius 圆的半径。
+ * @param thickness 圆边框的厚度。
+ * @param height 图像的高度。
+ * @param width 图像的宽度。
+ *
+ * 此函数首先调用draw_circle_kernel内核函数在GPU上异步执行绘制圆的操作，
+ * 然后同步CUDA设备以确保内核函数执行完成，并检查是否有CUDA错误发生。
+ */
 void draw_circle(uchar3* img, float2 center, float radius, int thickness,
                  int height, int width) {
+    // 调用CUDA内核函数，在GPU上绘制圆
     draw_circle_kernel<<<NUM_BLOCK(height * width), NUM_THREAD>>>(
         img, center, radius, thickness, height, width);
 
+    // 同步CUDA设备，确保内核函数执行完成
     checkCudaErrors(cudaDeviceSynchronize());
+    // 检查CUDA执行过程中是否有错误
     checkCudaErrors(cudaGetLastError());
 }
 
+/**
+ * 在图像上绘制边界框
+ *
+ * 该函数利用CUDA并行计算的能力，在给定的图像上根据提供的数据绘制边界框。边界框的数据包括在float3类型的data数组中，
+ * 而grid数组用于辅助定位。如果seam_mask不为空，它将用于避免在缝合mask上绘制边界框。
+ *
+ * @param img 指向图像像素数据的uchar3类型指针，图像为RGB格式。
+ * @param data
+ * 指向包含边界框数据的float3类型数组的指针。每个float3元素表示一个边界框的位置和尺寸。
+ * @param grid
+ * 指向辅助定位的网格数据的float2类型数组的指针。用于将数据坐标映射到图像坐标。
+ * @param seam_mask
+ * 指向缝合掩码的uchar类型数组的指针。如果某个像素在缝合掩码中，则不在该像素上绘制边界框。
+ * @param thickness 边界框的绘制厚度。
+ * @param height 图像的高度。
+ * @param width 图像的宽度。
+ */
 void draw_bbox(uchar3* img, float3* data, float2* grid, uchar* seam_mask,
                int thickness, int height, int width) {
+    // 调用CUDA内核函数，在图像上异步绘制边界框
     draw_bbox_kernel<<<NUM_BLOCK(height * width), NUM_THREAD>>>(
         img, data, grid, seam_mask, thickness, height, width);
+
+    // 等待所有CUDA任务完成，检查是否有错误发生
     checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaGetLastError());
 }

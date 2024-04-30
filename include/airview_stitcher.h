@@ -201,7 +201,7 @@ class AirViewStitcher {
     cv::Mat icon_;
     bool show_icon_ = false;
 
-    int num_view_ = 0;
+    uint64_t num_view_ = 0;
     int src_height_, src_width_, tgt_height_, tgt_width_;
     int size_src_, size_tgt_, size_scale_, size_icon_;
     int down_scale_seam_ = 1;

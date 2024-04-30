@@ -9,11 +9,6 @@
  */
 #include "CameraSender.h"
 
-void CameraSender::setYoloDetector(std::string weight_path) {
-    yolo_detect      = new yolo_detect::YoloDetect(weight_path, true);
-    flag_yolo_detect = true;
-}
-
 void CameraSender::setEcalTopic(std::string ecal_topic_str) {
     ecal_image_sender.open(ecal_topic_str);
 }
