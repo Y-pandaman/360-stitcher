@@ -234,7 +234,6 @@ __global__ void PyrDown_kernel(short* src, short* dst, int height, int width) {
         }
 
         // 根据权重计算最终颜色值并写入输出图像
-#pragma unroll
         if (weight == 0) {
             // 如果权重为0，则将像素值设置为特殊标识
             for (int i = 0; i < CHANNEL; i++) {
@@ -280,8 +279,8 @@ __global__ void convertBack_kernel(short3* src, uchar3* dst, int height,
     // 循环处理所有像素
     while (pixelIdx < totalPixel) {
         // 计算当前像素的x和y坐标
-        int x = pixelIdx % width;
-        int y = pixelIdx / width;
+        // int x = pixelIdx % width;
+        // int y = pixelIdx / width;
 
         // 将短期整型像素值转换为无符号字符型像素值
         dst[pixelIdx].x = (uchar)((float)src[pixelIdx].x / 32767.0f * 255.0f);

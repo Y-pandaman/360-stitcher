@@ -153,7 +153,6 @@ bool projToCylinderImage_cuda(ViewGPU_stilib view,
                               CylinderGPU_stilib& cylinder, int cyl_image_width,
                               int cyl_image_height) {
     // Suppose all images are same size; NOTE: FIX IF NECESSARY
-    int height = view.height, width = view.width;
     int size_c = cylinder.offset[3];
 
     int num_thread = 512;   // 设置每个CUDA块中的线程数为512

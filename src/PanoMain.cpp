@@ -1,21 +1,4 @@
 #include "PanoMain.h"
-#include "CameraSender.h"
-#include "EcalImageSender.h"
-#include "GstReceiver.h"
-#include "Intersector.h"
-#include "Undistorter.h"
-#include "airview_stitcher.h"
-#include "cuda_runtime.h"
-#include "innoreal_timer.hpp"
-#include "loguru.hpp"
-#include "yolo_detect.h"
-#include <filesystem>
-#include <iostream>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/opencv.hpp>
-#include <queue>
-#include <stack>
-#include <unistd.h>
 
 //#define OUTPUT_YOLO_RESULT
 //#define OUTPUT_YOLO_ORIGIN_RESULT
@@ -26,8 +9,6 @@
 // #define RESEND_ORIGINAL_IMAGE
 #define USE_VIDEO_INPUT
 #define USE_720P
-
-#include "Config.h"
 
 static Config config;
 
@@ -195,7 +176,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         if (original_ecal_topic_str[i].compare("back") == 0) {
             camera_sender_vec[i].setUndistorter(
                 undistorter_vec[original_camera_id_in_vec[i]],
-                true);   // 去畸变的标志位，无用（默认不去畸变）
+                false);   // 去畸变的标志位，无用（默认不去畸变）
         }
         camera_sender_vec[i].setGstReceiver(
             &gst_receivers[original_camera_id_in_vec[i]]);

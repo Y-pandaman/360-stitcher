@@ -2,7 +2,7 @@
  * @Author: 姚潘涛
  * @Date: 2024-04-23 19:16:24
  * @LastEditors: 姚潘涛
- * @LastEditTime: 2024-04-28 20:48:37
+ * @LastEditTime: 2024-04-30 20:20:28
  * @Description:
  *
  * Copyright (c) 2024 by pandaman, All Rights Reserved.
@@ -26,6 +26,7 @@ void CameraSender::mainWorker() {
         }
         cv::Mat img = gst_receiver->getImageMat();   // 获取当前帧数据
         if (fish_to_cyl_proj != nullptr) {
+            LOG_F(INFO, "fish_to_cyl_proj is not null");
             assert(fish_to_cyl_proj != nullptr);
             fish_to_cyl_proj->setImage(img);   // 图像从CPU复制到GPU
             fish_to_cyl_proj->stitch_project_to_cyn(

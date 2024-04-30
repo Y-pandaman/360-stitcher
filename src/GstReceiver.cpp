@@ -2,7 +2,7 @@
 
 /**
  * 初始化函数，用于打开视频流并设置图像队列。
- * 
+ *
  * @param url_ 视频流的URL地址。
  * @param queue_size_ 图像队列的大小，用于缓存视频帧。
  * @return 如果初始化成功返回true，否则返回false。
@@ -189,7 +189,7 @@ cv::Mat GstReceiver::getImageMat() {
 // 设置去畸变矩阵
 /**
  * 设置图像去畸变器的相关参数并初始化。
- * 
+ *
  * @param intrin_file_path 内参文件路径，用于加载相机的内参。
  * @param new_size_factor 新图像尺寸因子，用于调整输出图像的大小。
  * @param balance 平衡因子，用于调整去畸变过程中图像质量与速度的平衡。
@@ -209,4 +209,3 @@ void GstReceiver::setUndistorter(const std::string& intrin_file_path,
     // 标记为已初始化状态
     flag_undistort_image = true;
 }
-
