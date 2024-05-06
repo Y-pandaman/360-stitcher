@@ -4,8 +4,8 @@
 #define CALIB_GROUND_UNDISTORTER_H
 
 #include "image.pb.h"
-#include "innoreal_timer.hpp"
-#include "render.cuh"
+#include "stage/render.cuh"
+#include "util/innoreal_timer.h"
 #include <cstring>
 #include <ecal/ecal.h>
 #include <ecal/msg/protobuf/subscriber.h>

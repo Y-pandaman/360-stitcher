@@ -1,7 +1,7 @@
 #ifndef __AIRVIEW_STITCHER__UTILS__
 #define __AIRVIEW_STITCHER__UTILS__
 
-#include "cylinder_stitcher.cuh"
+#include "common/cylinder_stitcher.cuh"
 
 #define MASK_MAX 255
 

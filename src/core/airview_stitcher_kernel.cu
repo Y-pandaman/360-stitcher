@@ -1,4 +1,4 @@
-#include "airview_stitcher.h"
+#include "core/airview_stitcher.h"
 
 __device__ __constant__ uchar3 BBOX_COLOR   = {50, 205, 50};
 __device__ __constant__ uchar3 CIRCLE_COLOR = {255, 144, 30};
@@ -202,8 +202,8 @@ __global__ void PyrDown_kernel(short* src, short* dst, int height, int width) {
     // 循环处理所有像素点
     while (pixelIdx < totalPixel) {
         // 计算原始图像中对应当前像素点的坐标和索引
-        int src_x        = 2 * (pixelIdx % width);
-        int src_y        = 2 * (pixelIdx / width);
+        int src_x = 2 * (pixelIdx % width);
+        int src_y = 2 * (pixelIdx / width);
 
         // 初始化颜色数组和权重
         float color[CHANNEL];

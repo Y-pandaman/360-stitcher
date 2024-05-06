@@ -1,8 +1,8 @@
 #ifndef __RENDER__
 #define __RENDER__
 
+#include "common/cylinder_stitcher.cuh"
 #include "cuda_runtime.h"
-#include "cylinder_stitcher.cuh"
 #include <cuda.h>
 #include <iostream>
 #include <thrust/extrema.h>

@@ -1,11 +1,19 @@
+/*
+ * @Author: 姚潘涛
+ * @Date: 2024-04-25 20:53:47
+ * @LastEditors: 姚潘涛
+ * @LastEditTime: 2024-05-06 20:03:27
+ * @Description:
+ *
+ * Copyright (c) 2024 by pandaman, All Rights Reserved.
+ */
 
 #ifndef CYLINDER_STITCHER_GSTRECEIVER_H
 #define CYLINDER_STITCHER_GSTRECEIVER_H
 
-#include "EcalImageSender.h"
-#include "Undistorter.h"
-#include "loguru.hpp"
-#include "yolo_detect.h"
+#include "stage/ecal_image_sender.h"
+#include "stage/undistorter.h"
+#include "util/loguru.hpp"
 #include <atomic>
 #include <condition_variable>
 #include <mutex>

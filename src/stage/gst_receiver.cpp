@@ -1,4 +1,4 @@
-#include "GstReceiver.h"
+#include "stage/gst_receiver.h"
 
 /**
  * 初始化函数，用于打开视频流并设置图像队列。

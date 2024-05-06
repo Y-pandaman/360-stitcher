@@ -34,19 +34,19 @@ cuda_add_executable(
 )
 
 CUDA_ADD_LIBRARY(pano_main SHARED
-        src/airview_stitcher.cpp
-        src/airview_stitcher_kernel.cu
-        src/blend_kernel.cu
-        src/Undistorter.cpp
-        src/GstReceiver.cpp
-        src/loguru.cpp
-        src/yolo.cpp
-        src/yolo_detect.cpp
-        src/EcalImageSender.cpp
-        src/PanoMain.cpp
-        src/CameraSender.cpp
-        src/Config.cpp
-        src/render.cu
+        src/core/airview_stitcher.cpp
+        src/core/airview_stitcher_kernel.cu
+        src/stage/blend_kernel.cu
+        src/stage/undistorter.cpp
+        src/stage/gst_receiver.cpp
+        src/util/loguru.cpp
+        src/stage/yolo.cpp
+        src/stage/yolo_detect.cpp
+        src/stage/ecal_image_sender.cpp
+        src/core/pano_main.cpp
+        src/stage/camera_sender.cpp
+        src/util/config.cpp
+        src/stage/render.cu
 )
 
 set(protobuf_files

@@ -1,4 +1,4 @@
-#include "blend.h"
+#include "stage/blend_kernel.h"
 
 __device__ __constant__ float GauKernel[25] = {
     0.0039, 0.0156, 0.0234, 0.0156, 0.0039, 0.0156, 0.0625, 0.0938, 0.0625,

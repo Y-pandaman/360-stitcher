@@ -7,7 +7,7 @@
  *
  * Copyright (c) 2024 by pandaman, All Rights Reserved.
  */
-#include "CameraSender.h"
+#include "stage/camera_sender.h"
 
 void CameraSender::setEcalTopic(std::string ecal_topic_str) {
     ecal_image_sender.open(ecal_topic_str);

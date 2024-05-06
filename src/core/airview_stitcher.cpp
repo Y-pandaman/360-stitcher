@@ -1,4 +1,4 @@
-#include "airview_stitcher.h"
+#include "core/airview_stitcher.h"
 
 /**
  * AirViewStitcher的构造函数：初始化拼接器的参数和分配相关设备内存。

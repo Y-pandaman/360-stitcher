@@ -2,15 +2,15 @@
  * @Author: 姚潘涛
  * @Date: 2024-04-25 20:51:36
  * @LastEditors: 姚潘涛
- * @LastEditTime: 2024-04-30 18:58:45
+ * @LastEditTime: 2024-05-06 19:49:14
  * @Description:
  *
  * Copyright (c) 2024 by pandaman, All Rights Reserved.
  */
 #pragma once
 
-#include "loguru.hpp"
-#include "yolo.h"
+#include "stage/yolo.h"
+#include "util/loguru.hpp"
 #include <iostream>
 #include <math.h>
 #include <opencv2/opencv.hpp>

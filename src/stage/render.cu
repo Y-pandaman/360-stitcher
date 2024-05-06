@@ -1,4 +1,4 @@
-#include "render.cuh"
+#include "stage/render.cuh"
 
 // 将一个源图像src_cyl_img按照给定的权重w混合到目标图像dst_cyl_img中
 // __global__属性，表明这个函数可以在GPU上执行

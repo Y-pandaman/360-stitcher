@@ -1,11 +1,11 @@
 #ifndef __AIRVIEW_STITCHER__
 #define __AIRVIEW_STITCHER__
 
-#include "airview_stitcher_utils.h"
-#include "blend.h"
-#include "helper_cuda.h"
-#include "innoreal_timer.hpp"
-#include "loguru.hpp"
+#include "core/airview_stitcher_utils.h"
+#include "stage/blend_kernel.h"
+#include "util/helper_cuda.h"
+#include "util/innoreal_timer.h"
+#include "util/loguru.hpp"
 #include <filesystem>
 #include <opencv2/opencv.hpp>
 #include <queue>

@@ -1,4 +1,4 @@
-#include "yolo_detect.h"
+#include "stage/yolo_detect.h"
 
 namespace yolo_detect {
 YoloDetect::YoloDetect(std::string model_path, bool use_CUDA) {
@@ -10,8 +10,7 @@ YoloDetect::YoloDetect(std::string model_path, bool use_CUDA) {
     }
 }
 
-YoloDetect::~YoloDetect() {
-}
+YoloDetect::~YoloDetect() { }
 
 cv::Mat YoloDetect::detect(cv::Mat img) {
     cv::Mat result_img;
@@ -28,7 +27,7 @@ cv::Mat YoloDetect::detect(cv::Mat img) {
         result_img = yolo.drawPred(img, result, color);
         return result_img;
     } else {
-//        LOG_F(INFO, "Detect Failed!");
+        //        LOG_F(INFO, "Detect Failed!");
         return img;
     }
 }
@@ -46,17 +45,17 @@ struct struct_yolo_result YoloDetect::detect_bbox(cv::Mat img) {
     }
 
     if (yolo.Detect(img, net, result)) {
-//        result_img = yolo.drawPred(img, result, color);
-        result_.img = result_img;
+        //        result_img = yolo.drawPred(img, result, color);
+        result_.img    = result_img;
         result_.result = result;
         return result_;
         // return result_img;
     } else {
-//        LOG_F(INFO, "Detect Failed!");
+        //        LOG_F(INFO, "Detect Failed!");
         // return img;
         result_.img = img;
         return result_;
     }
 }
 
-} // namespace yolo_detect
+}   // namespace yolo_detect

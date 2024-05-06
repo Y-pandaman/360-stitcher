@@ -7,7 +7,7 @@
  *
  * Copyright (c) 2024 by pandaman, All Rights Reserved.
  */
-#include "EcalImageSender.h"
+#include "stage/ecal_image_sender.h"
 
 EcalImageSender::EcalImageSender(int argc, char** argv) { }
 
@@ -15,9 +15,9 @@ EcalImageSender::~EcalImageSender() { }
 
 /**
  * @brief 发布OpenCV图像
- * 
+ *
  * 此函数将OpenCV图像封装到自定义的protobuf消息中，并通过一个图像发布者发送出去。
- * 
+ *
  * @param image 要发布的OpenCV图像。图像数据将被复制到protobuf消息中。
  */
 void EcalImageSender::pubImage(cv::Mat image) {
@@ -39,7 +39,7 @@ void EcalImageSender::pubImage(cv::Mat image) {
 
 /**
  * @brief 初始化并打开一个eCAL图像发送器，用于发送OpenCV图像。
- * 
+ *
  * @param topic 要发布图像的eCAL主题名称。
  */
 void EcalImageSender::open(const std::string& topic) {

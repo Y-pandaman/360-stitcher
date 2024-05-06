@@ -1,8 +1,8 @@
 #ifndef __BLEND__
 #define __BLEND__
 
+#include "common/cylinder_stitcher.cuh"
 #include "cuda_runtime.h"
-#include "cylinder_stitcher.cuh"
 #include <iostream>
 #include <vector>
 

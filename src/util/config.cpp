@@ -1,4 +1,13 @@
-#include "Config.h"
+/*
+ * @Author: 姚潘涛
+ * @Date: 2024-04-25 20:39:10
+ * @LastEditors: 姚潘涛
+ * @LastEditTime: 2024-05-06 19:46:33
+ * @Description:
+ *
+ * Copyright (c) 2024 by pandaman, All Rights Reserved.
+ */
+#include "util/config.h"
 
 Config::Config() {
     load_config_file("../assets/yamls/config.yaml");

@@ -1,4 +1,4 @@
-#include "PanoMain.h"
+#include "core/pano_main.h"
 
 // #define OUTPUT_STITCHING_RESULT_VIDEO
 
