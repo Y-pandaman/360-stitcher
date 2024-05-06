@@ -1,13 +1,10 @@
 #include "PanoMain.h"
 
-//#define OUTPUT_YOLO_RESULT
-//#define OUTPUT_YOLO_ORIGIN_RESULT
-//#define OUTPUT_STITCHING_RESULT_PNG
 #define OUTPUT_STITCHING_RESULT_VIDEO
 
-#define USE_GST_INPUT
+// #define USE_GST_INPUT
 // #define RESEND_ORIGINAL_IMAGE
-// #define USE_VIDEO_INPUT
+#define USE_VIDEO_INPUT
 #define USE_720P
 
 static Config config;
@@ -304,31 +301,6 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
             break;
 #endif   // USE_VIDEO_INPUT
 
-// 输出yolo识别结果
-#ifdef OUTPUT_YOLO_ORIGIN_RESULT
-        // 遍历每个相机的图像，并使用YOLO检测算法进行检测
-        for (int i = 0; i < camera_idx_vec.size(); i++) {
-            cv::Mat tp = input_img_vec[i].clone();   // 复制当前相机的图像
-            yolo_detect.detect(tp);   // 使用YOLO检测算法检测图像中的物体
-            // 构建YOLO原始结果的保存路径
-            std::filesystem::path yolo_origin_result_path(
-                "./output/yolo_origin_result/");
-            yolo_origin_result_path.append(
-                std::to_string(camera_idx_vec[i]));   // 添加相机索引
-            // 检查路径是否存在，如果不存在则创建该路径
-            if (!std::filesystem::exists(yolo_origin_result_path)) {
-                std::filesystem::create_directories(yolo_origin_result_path);
-            }
-            // 构建并构建文件名，包括相机索引、帧数和文件扩展名
-            yolo_origin_result_path.append(std::to_string(camera_idx_vec[i]) +
-                                           "-" + std::to_string(frame_count) +
-                                           ".png");
-            // 将检测后的图像写入到文件中
-            cv::imwrite(yolo_origin_result_path, tp);
-        }
-        continue;
-#endif
-
 // 使用gst数据
 #ifdef USE_GST_INPUT
         for (uint64_t i = 0; i < camera_idx_vec.size(); i++) {
@@ -364,28 +336,6 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
             // 使用YOLO检测算法对当前图像进行物体检测，并获取检测结果
             struct_yolo_result yolo_result =
                 yolo_detect.detect_bbox(undistorted_img_vec[i]);
-
-            // 根据是否定义了OUTPUT_YOLO_RESULT宏，输出YOLO检测结果
-#ifdef OUTPUT_YOLO_RESULT
-            // 复制当前图像，以便在上面绘制检测框
-            cv::Mat output_img = undistorted_img_vec[i].clone();
-            // 在图像上绘制检测框
-            yolo_detect.detect(output_img);
-            // 构建检测结果的输出路径
-            std::filesystem::path detect_result_path(data_root_dir);
-            detect_result_path.append("detected_camera_" +
-                                      std::to_string(camera_idx_vec[i]));
-            // 检查路径是否存在，如果不存在则创建
-            if (!std::filesystem::exists(detect_result_path)) {
-                std::filesystem::create_directories(detect_result_path);
-            }
-            // 生成并保存带有检测结果的图像
-            detect_result_path.append(std::to_string(camera_idx_vec[i]) + "-" +
-                                      std::to_string(frame_count) + ".png");
-            cv::imwrite(detect_result_path, output_img);
-            // 继续处理下一张图像
-            continue;
-#endif
 
             // 初始化存储检测框的向量
             std::vector<BBox> temp;
@@ -505,17 +455,6 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         cv::imshow("result_image", rgb);
         cv::waitKey(1);
         video_writer.write(rgb);
-#endif
-
-#ifdef OUTPUT_STITCHING_RESULT_PNG
-        std::filesystem::path image_result_path(
-            "./output/stitching_result_png/");
-        if (!std::filesystem::exists(image_result_path)) {
-            std::filesystem::create_directories(image_result_path);
-        }
-        image_result_path.append("stitching_result_" +
-                                 std::to_string(frame_count) + ".png");
-        cv::imwrite(image_result_path, rgb);
 #endif
 
         total_timer.TimeEnd();
