@@ -241,11 +241,6 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
     assert(input_img.size() == num_view_);
     assert(bboxs.size() == num_view_);
 
-#ifdef OUTPUT_WARPED_RGB
-    // 用于输出 warp 后 RGB 图像的帧计数器
-    static int frame_warped_rgb_count = 0;
-#endif
-
     // 遍历所有视图，执行图像预处理步骤
     for (uint64_t i = 0; i < num_view_; i++) {
         // 将图像数据从主机内存复制到设备内存
@@ -258,42 +253,11 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
         // 确保cuda操作完成
         checkCudaErrors(cudaDeviceSynchronize());
         checkCudaErrors(cudaGetLastError());
-#ifdef OUTPUT_WARPED_RGB
-        // 将warp后的图像数据拷贝回主机内存，并保存为PNG图像
-        cv::Mat rgb, mask;
-        warped_inputs_[i].toCPU(rgb, mask);
-        checkCudaErrors(cudaDeviceSynchronize());
-        checkCudaErrors(cudaGetLastError());
-        // 构建输出文件路径并保存warp后的RGB图像
-        std::filesystem::path warped_image_path("output/warped_image/");
-        warped_image_path.append(std::to_string(i));
-        if (!std::filesystem::exists(warped_image_path)) {
-            std::filesystem::create_directories(warped_image_path);
-        }
-        warped_image_path.append("warped_rgb_" + std::to_string(i) + "-" +
-                                 std::to_string(frame_warped_rgb_count) +
-                                 ".png");
-        cv::imwrite(warped_image_path, rgb);
-#endif
+
         // 对warp后的图像进行金字塔下采样
         pyramid_downsample(warped_inputs_[i], down_scale_seam_,
                            scaled_rgbs_[i]);
     }
-
-#ifdef OUTPUT_WARPED_RGB
-    // 更新输出warp后RGB图像的帧计数器
-    frame_warped_rgb_count++;
-#endif
-
-#ifdef OUTPUT_DIFF_IMAGE
-    // 用于输出差异图像的帧计数器
-    static int diff_frame_count = 0;
-#endif
-
-#ifdef OUTPUT_FINAL_DIFF
-    // 用于输出最终差异图像的帧计数器
-    static int diff_final_frame_count = 0;
-#endif
 
     // 用于存储上一帧的缝合线
     static cv::Mat prev_frame_seam;
@@ -303,51 +267,6 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
         int j = (i + 1) % num_view_;
         compute_diff(scaled_rgbs_[i], scaled_rgbs_[j], diffs_[i],
                      temp_diffs_[i], scale_height_, scale_width_);
-#ifdef OUTPUT_DIFF_IMAGE
-        // 将差异图像数据从设备内存拷贝到主机内存，并保存为PNG图像
-        int height = scale_height_, width = scale_width_;
-        ushort* output_img_data;
-        checkCudaErrors(cudaHostAlloc((void**)&output_img_data,
-                                      sizeof(ushort) * height * width,
-                                      cudaHostAllocDefault));
-        checkCudaErrors(cudaMemcpy(output_img_data, diffs_[i],
-                                   sizeof(ushort) * height * width,
-                                   cudaMemcpyDeviceToHost));
-        checkCudaErrors(cudaDeviceSynchronize());
-        checkCudaErrors(cudaGetLastError());
-        // 构建输出文件路径并保存差异图像
-        cv::Mat img = cv::Mat(height, width, CV_16UC1, output_img_data);
-        std::filesystem::path diff_img_dilated_path("output/diff_img_dilated/");
-        diff_img_dilated_path.append("diff_img_dilated_" + std::to_string(i));
-        if (!std::filesystem::exists(diff_img_dilated_path)) {
-            std::filesystem::create_directories(diff_img_dilated_path);
-        }
-
-        diff_img_dilated_path.append("diff_img_dilated_" + std::to_string(i) +
-                                     "-" + std::to_string(diff_frame_count) +
-                                     ".png");
-        cv::imwrite(diff_img_dilated_path, img);
-
-        std::filesystem::path diff_img_path("output/diff_img");
-        diff_img_path.append("diff_img_" + std::to_string(i));
-        if (!std::filesystem::exists(diff_img_path)) {
-            std::filesystem::create_directories(diff_img_path);
-        }
-        diff_img_path.append("diff_img_" + std::to_string(i) + "-" +
-                             std::to_string(diff_frame_count) + ".png");
-
-        checkCudaErrors(cudaMemcpy(output_img_data, temp_diffs_[i],
-                                   sizeof(ushort) * height * width,
-                                   cudaMemcpyDeviceToHost));
-        checkCudaErrors(cudaDeviceSynchronize());
-        checkCudaErrors(cudaGetLastError());
-        img = cv::Mat(height, width, CV_16UC1, output_img_data);
-        cv::imwrite(diff_img_path, img);
-
-        checkCudaErrors(cudaFreeHost(output_img_data));
-        checkCudaErrors(cudaDeviceSynchronize());
-        checkCudaErrors(cudaGetLastError());
-#endif
 
         // 更新相邻两个图像中人物区域的差异值
         std::vector<BBox> boundingboxs_i = bboxs[i];
@@ -370,42 +289,7 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
         // 将差异图像数据从设备内存拷贝到主机内存
         cudaMemcpy(diffs_map_[i].ptr<ushort>(0), diffs_[i],
                    sizeof(ushort) * size_scale_, cudaMemcpyDeviceToHost);
-#ifdef OUTPUT_FINAL_DIFF
-        // 将最终差异图像数据从设备内存拷贝到主机内存，并保存为PNG图像
-        ushort* final_diff_img;
-        checkCudaErrors(
-            cudaHostAlloc((void**)&final_diff_img,
-                          sizeof(ushort) * scale_height_ * scale_width_,
-                          cudaHostAllocDefault));
-        checkCudaErrors(
-            cudaMemcpy(final_diff_img, diffs_[i],
-                       sizeof(ushort) * scale_height_ * scale_width_,
-                       cudaMemcpyDeviceToHost));
-        checkCudaErrors(cudaDeviceSynchronize());
-        checkCudaErrors(cudaGetLastError());
-        cv::Mat final_diff_img_mat =
-            cv::Mat(scale_height_, scale_width_, CV_16UC1, final_diff_img);
-        std::filesystem::path diff_img_final_path("output/diff_final_img/");
-        diff_img_final_path.append("diff_final_img_" + std::to_string(i));
-        if (!std::filesystem::exists(diff_img_final_path)) {
-            std::filesystem::create_directories(diff_img_final_path);
-        }
-        diff_img_final_path.append("diff_img_final_" + std::to_string(i) + "-" +
-                                   std::to_string(diff_final_frame_count) +
-                                   ".png");
-        cv::imwrite(diff_img_final_path, final_diff_img_mat);
-#endif
     }
-
-#ifdef OUTPUT_DIFF_IMAGE
-    // 更新输出差异图像的帧计数器
-    diff_frame_count++;
-#endif
-
-#ifdef OUTPUT_FINAL_DIFF
-    // 更新输出最终差异图像的帧计数器
-    diff_final_frame_count++;
-#endif
 
     // 计算所有视图的缝合线
     cv::Mat total_seam_map =
@@ -421,38 +305,6 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
     cv::dilate(seam_line, bound_mask_,
                cv::getStructuringElement(
                    cv::MORPH_RECT, cv::Size(bound_kernel_, bound_kernel_)));
-    // cv::imshow("bound_mask", bound_mask_);
-    // cv::waitKey(1);
-#ifdef OUTPUT_TOTAL_SEAM_MAP
-    // 生成并保存缝合线的可视化图像
-    cv::Mat out =
-        cv::Mat::zeros(total_seam_map.rows, total_seam_map.cols, CV_8UC3);
-    for (int i = 0; i < out.rows; i++) {
-        for (int j = 0; j < out.cols; j++) {
-            if (total_seam_map.at<uchar>(i, j) == 0)
-                out.at<uchar3>(i, j) = make_uchar3(0, 0, 255);
-            else if (total_seam_map.at<uchar>(i, j) == 1)
-                out.at<uchar3>(i, j) = make_uchar3(0, 255, 0);
-            else if (total_seam_map.at<uchar>(i, j) == 2)
-                out.at<uchar3>(i, j) = make_uchar3(255, 0, 0);
-            else if (total_seam_map.at<uchar>(i, j) == 3)
-                out.at<uchar3>(i, j) = make_uchar3(0, 255, 255);
-            else if (total_seam_map.at<uchar>(i, j) == 4)
-                out.at<uchar3>(i, j) = make_uchar3(255, 0, 255);
-            else if (total_seam_map.at<uchar>(i, j) == 5)
-                out.at<uchar3>(i, j) = make_uchar3(255, 255, 0);
-        }
-    }
-    std::filesystem::path total_seam_map_path("output/total_seam_map/");
-    if (!std::filesystem::exists(total_seam_map_path)) {
-        std::filesystem::create_directories(total_seam_map_path);
-    }
-    static int frame_count_total_seam_map = 0;
-    total_seam_map_path.append("total_seam_map_" +
-                               std::to_string(frame_count_total_seam_map++) +
-                               ".png");
-    cv::imwrite(total_seam_map_path, out);
-#endif
 
     // 生成每个视图的接缝掩膜
     // total_mask_: 全部视图的掩膜图像

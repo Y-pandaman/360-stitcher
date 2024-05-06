@@ -2,7 +2,7 @@
 #define __BLEND__
 
 #include "cuda_runtime.h"
-#include "cylinder_stitcher.h"
+#include "cylinder_stitcher.cuh"
 #include <iostream>
 #include <vector>
 

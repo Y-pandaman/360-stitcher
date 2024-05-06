@@ -56,20 +56,12 @@ public:
     void stitch_project_to_cyn(int time = 0);
     void setImage(cv::Mat input_img);
     void setExtraImage(cv::Mat extra_img);
-
     cv::Mat getProjectedImage();
-
-    CylinderGPU_stilib* getCyl() {
-        return cyl_;
-    }
-    void setExtraImageCuda(float* image_cuda, int width, int height);
 
 private:
     uchar3* extra_view_buffer = nullptr;
 
     ViewGPU_stilib extra_view;
-    CylinderImageGPU_stilib extra_cyl_image;
-
     CylinderGPU_stilib* cyl_ = nullptr;
     ViewGPU_stilib view_;
     int cyl_image_width_, cyl_image_height_;

@@ -2,7 +2,7 @@
  * @Author: 姚潘涛
  * @Date: 2024-04-23 19:16:24
  * @LastEditors: 姚潘涛
- * @LastEditTime: 2024-04-30 20:20:28
+ * @LastEditTime: 2024-05-06 10:36:20
  * @Description:
  *
  * Copyright (c) 2024 by pandaman, All Rights Reserved.
@@ -48,10 +48,5 @@ void CameraSender::setUndistorter(const Undistorter& undistorter_,
     undistorter = undistorter_;
     if (set_thread_cyl) {
         fish_to_cyl_proj   = new FishToCylProj(undistorter_);
-        flag_fishToCylProj = false;
-        flag_undistort     = false;
-    } else {
-        flag_undistort     = false;
-        flag_fishToCylProj = false;
     }
 }

@@ -47,7 +47,6 @@ CUDA_ADD_LIBRARY(pano_main SHARED
         src/CameraSender.cpp
         src/Config.cpp
         src/project_to_cylinder.cu
-        src/cylinder_stitcher.cu
         src/render.cu
 )
 

@@ -149,7 +149,6 @@ GstReceiver::~GstReceiver() {
     delete mutex_on_image_queue;
     delete thread_receive_worker;
     delete thread_write_worker;
-    delete yolo_detector;
 }
 
 /**
@@ -206,6 +205,4 @@ void GstReceiver::setUndistorter(const std::string& intrin_file_path,
     }
     // 根据参数获取重映射用的映射图
     undistorter.getMapForRemapping(new_size_factor, balance);
-    // 标记为已初始化状态
-    flag_undistort_image = true;
 }

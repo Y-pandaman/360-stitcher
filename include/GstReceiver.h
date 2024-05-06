@@ -48,10 +48,6 @@ private:
     } status = UNINITIALIZED;
 
     Undistorter undistorter;
-
-    std::atomic_bool flag_send_original_image = false,
-                     flag_undistort_image = false, flag_yolo_detect = false;
-    yolo_detect::YoloDetect* yolo_detector = nullptr;
 };
 
 #endif   // CYLINDER_STITCHER_GSTRECEIVER_H

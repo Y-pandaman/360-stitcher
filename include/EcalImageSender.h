@@ -1,3 +1,12 @@
+/*
+ * @Author: 姚潘涛
+ * @Date: 2024-04-25 20:53:47
+ * @LastEditors: 姚潘涛
+ * @LastEditTime: 2024-05-06 11:22:54
+ * @Description:
+ *
+ * Copyright (c) 2024 by pandaman, All Rights Reserved.
+ */
 //
 // Created by touch on 22-11-29.
 //
@@ -17,7 +26,6 @@ public:
     ~EcalImageSender();
 
     void open(const std::string& topic);
-
     void pubImage(cv::Mat image);
 
 private:

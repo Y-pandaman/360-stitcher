@@ -5,9 +5,9 @@
 //#define OUTPUT_STITCHING_RESULT_PNG
 #define OUTPUT_STITCHING_RESULT_VIDEO
 
-// #define USE_GST_INPUT
+#define USE_GST_INPUT
 // #define RESEND_ORIGINAL_IMAGE
-#define USE_VIDEO_INPUT
+// #define USE_VIDEO_INPUT
 #define USE_720P
 
 static Config config;
@@ -138,16 +138,16 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     // 接收图像
     std::vector<GstReceiver> gst_receivers(camera_idx_vec.size());
     // 依次初始化码流抓取器
-    for (int i = 0; i < camera_idx_vec.size(); i++) {
-        printf("initialize VideoCapture %d...\n", i);
+    for (uint64_t i = 0; i < camera_idx_vec.size(); i++) {
+        printf("initialize VideoCapture %ld...\n", i);
         if (gst_receivers[i].initialize(gst_strs[i], 2)) {
-            printf("initialize VideoCapture %d done\n", i);
+            printf("initialize VideoCapture %ld done\n", i);
         }
     }
     // 依次抓取视频流
-    for (int i = 0; i < camera_idx_vec.size(); i++) {
+    for (uint64_t i = 0; i < camera_idx_vec.size(); i++) {
         if (gst_receivers[i].startReceiveWorker()) {
-            printf("start gst_receiver %d done\n", i);
+            printf("start gst_receiver %ld done\n", i);
         }
     }
 #endif   // USE_GST_INPUT
@@ -158,7 +158,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     std::vector<int> original_camera_id_in_vec {1, 3, 5};
     // 初始化图像发布器
     std::vector<CameraSender> camera_sender_vec(original_ecal_topic_str.size());
-    for (int i = 0; i < original_camera_id_in_vec.size(); i++) {
+    for (uint64_t i = 0; i < original_camera_id_in_vec.size(); i++) {
         std::filesystem::path yaml_path(yamls_dir);
         // 加载内参
         yaml_path.append(
@@ -176,7 +176,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         if (original_ecal_topic_str[i].compare("back") == 0) {
             camera_sender_vec[i].setUndistorter(
                 undistorter_vec[original_camera_id_in_vec[i]],
-                false);   // 去畸变的标志位，无用（默认不去畸变）
+                false);   // 是否添加倒车辅助线
         }
         camera_sender_vec[i].setGstReceiver(
             &gst_receivers[original_camera_id_in_vec[i]]);
@@ -285,12 +285,11 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
     for (int frame_count = 0;; frame_count++) {
         total_timer.TimeStart();
-        //        LOG_F(INFO, "frame_count = %d", frame_count);
-        bool video_done_flag = false;
 
         step_timer.TimeStart();
         // 使用图像文件
 #ifdef USE_VIDEO_INPUT
+        bool video_done_flag = false;
         // 遍历所有摄像头索引，尝试从每个摄像头读取一帧图像
         for (uint64_t i = 0; i < camera_idx_vec.size(); i++) {
             // 尝试读取视频帧，如果读取失败（视频结束），则将视频指针重置为第一帧，并再次尝试读取
@@ -332,7 +331,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
 // 使用gst数据
 #ifdef USE_GST_INPUT
-        for (int i = 0; i < camera_idx_vec.size(); i++) {
+        for (uint64_t i = 0; i < camera_idx_vec.size(); i++) {
             input_img_vec[i] =
                 gst_receivers[i].getImageMat();   // 获取当前帧图像
         }

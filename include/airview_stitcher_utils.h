@@ -1,11 +1,9 @@
 #ifndef __AIRVIEW_STITCHER__UTILS__
 #define __AIRVIEW_STITCHER__UTILS__
 
-#include "cylinder_stitcher.h"
+#include "cylinder_stitcher.cuh"
 
 #define MASK_MAX 255
-
-//#define PRINT_WEIGHT_ON_SEAM
 
 typedef std::pair<int, int2> myPair;
 
@@ -41,13 +39,13 @@ struct cmp {
 
 /**
  * @brief 对三维点进行基于homograph的变形。
- * 
+ *
  * @param p 待变形的三维点，其中x、y、z分别表示点的坐标。
  * @param H 变形所使用的homograph矩阵，是一个3x3的矩阵。
  * @return float3 返回变形后的三维点坐标。
  */
 static inline float3 homographBased_warp(float3 p, cv::Mat H) {
-    float3 warped_p; // 用于存储变形后的点
+    float3 warped_p;   // 用于存储变形后的点
 
     // 通过homograph矩阵对点进行变形
     warped_p.x = H.at<float>(0, 0) * p.x + H.at<float>(0, 1) * p.y +
@@ -298,10 +296,6 @@ static inline void Dijkstra_search_seam(int2 start, int2 end, cv::Mat diff,
         seam_map.at<uchar>(end_pts.x, end_pts.y)  = seam_mark;
         seam_line.at<uchar>(end_pts.x, end_pts.y) = 255;
 
-#ifdef PRINT_WEIGHT_ON_SEAM
-        printf("%d ", diff.at<ushort>(end_pts.x, end_pts.y));
-#endif
-
         if (end_pts.x == start.x && end_pts.y == start.y)
             break;
 
@@ -312,9 +306,6 @@ static inline void Dijkstra_search_seam(int2 start, int2 end, cv::Mat diff,
 
     // cv::imshow("seam_map", seam_map);
     // cv::waitKey(1);
-#ifdef PRINT_WEIGHT_ON_SEAM
-    printf("\n");
-#endif
 }
 
 /**
@@ -463,11 +454,13 @@ gen_seam_mask(cv::Mat total_mask, cv::Mat total_seam_map, int num_view) {
 
 /**
  * @brief 分配GPU上的接缝掩码内存
- * 
+ *
  * 该函数将CPU上存储的接缝掩码图像放大到指定的尺度，并将它们传输到GPU内存中。
- * 
- * @param seam_masks_cpu CPU上存储的原始接缝掩码图像的向量。这些图像将被放大并传输到GPU。
- * @param seam_masks GPU上接缝掩码图像的指针向量，函数执行后将包含放大并传输到GPU上的掩码指针。
+ *
+ * @param seam_masks_cpu
+ * CPU上存储的原始接缝掩码图像的向量。这些图像将被放大并传输到GPU。
+ * @param seam_masks
+ * GPU上接缝掩码图像的指针向量，函数执行后将包含放大并传输到GPU上的掩码指针。
  * @param scale 放大接缝掩码图像的尺度因子。
  */
 static inline void allocate_seam_masks_GPU(std::vector<cv::Mat> seam_masks_cpu,
@@ -475,7 +468,7 @@ static inline void allocate_seam_masks_GPU(std::vector<cv::Mat> seam_masks_cpu,
                                            int scale) {
     // 遍历每一张接缝掩码图像，将其放大并传输到GPU
     for (uint64_t i = 0; i < seam_masks_cpu.size(); i++) {
-        cv::Mat mask; // 用于存储放大的掩码图像
+        cv::Mat mask;   // 用于存储放大的掩码图像
         // 将原始掩码图像放大到指定尺度
         cv::resize(seam_masks_cpu[i], mask,
                    cv::Size(seam_masks_cpu[i].cols * scale,

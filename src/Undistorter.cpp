@@ -42,7 +42,7 @@ bool Undistorter::getMapForRemapping(float new_size_factor, float balance) {
 
 /**
  * 该函数用于对图像进行去畸变处理。
- * 
+ *
  * @param input_image 输入图像，需要进行去畸变处理的原始图像。
  * @param output_image 输出图像，经过去畸变处理后的图像。
  * @return 成功返回true，如果无法初始化映射或映射获取失败则返回false。
@@ -50,8 +50,8 @@ bool Undistorter::getMapForRemapping(float new_size_factor, float balance) {
 bool Undistorter::undistortImage(cv::Mat input_image, cv::Mat& output_image) {
     // 检查映射是否已经初始化，如果未初始化则尝试获取映射
     if (!map_inited) {
-        bool flag = getMapForRemapping(); // 尝试获取用于映射的参数
-        if (!flag) // 如果获取失败，则返回false
+        bool flag = getMapForRemapping();   // 尝试获取用于映射的参数
+        if (!flag)   // 如果获取失败，则返回false
             return false;
     }
     // 使用remap函数对图像进行去畸变处理
@@ -223,28 +223,6 @@ cv::Mat FishToCylProj::getProjectedImage() {
     view_.toCPU(img, mask);
     cv::Mat result_img = img.clone();
     return result_img;
-}
-
-void FishToCylProj::setExtraImageCuda(float* image_cuda, int width,
-                                      int height) {
-    extra_view.width  = width;
-    extra_view.height = height;
-    extra_view.mask   = nullptr;
-
-    int block = 128, grid = (height * width + block - 1) / block;
-
-    if (extra_view_buffer == nullptr)
-        checkCudaErrors(cudaMalloc((void**)&extra_view_buffer,
-                                   width * height * sizeof(uchar3)));
-
-    checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaGetLastError());
-    ConvertRGBAF2RGBU_host(image_cuda, (uchar3*)extra_view_buffer, width,
-                           height, grid, block);
-    checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaGetLastError());
-
-    extra_view.image = (uchar3*)extra_view_buffer;
 }
 
 // 将图像放到GPU上

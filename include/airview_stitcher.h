@@ -15,11 +15,6 @@
 #define NUM_THREAD 512
 #define NUM_BLOCK(x) MIN_VALUE(65535, (x + NUM_THREAD - 1) / NUM_THREAD)
 
-// #define OUTPUT_WARPED_RGB
-// #define OUTPUT_TOTAL_SEAM_MAP
-// #define OUTPUT_DIFF_IMAGE
-// #define OUTPUT_FINAL_DIFF
-
 /**
  * BBox结构体定义了边界框的数据结构，包括视图索引和边界框的四个角点信息。
  */
@@ -207,11 +202,6 @@ class AirViewStitcher {
     int down_scale_seam_ = 1;
     int scale_height_, scale_width_;
     int icon_height_, icon_width_;
-
-private:
-    cv::Mat pano_seam_assist_comp;
-    std::vector<cv::Mat> pano_seam_assist_vec;
-    cv::Mat getSeamRangeMask(int id);
 
 public:
     AirViewStitcher(int num_view, int src_height, int src_width, int tgt_height,
