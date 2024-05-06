@@ -3,7 +3,6 @@
 
 #include "cuda_runtime.h"
 #include "cylinder_stitcher.cuh"
-#include "project_to_cylinder.cuh"
 #include <cuda.h>
 #include <iostream>
 #include <thrust/extrema.h>

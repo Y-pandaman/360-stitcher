@@ -53,7 +53,7 @@ private:
 class FishToCylProj {
 public:
     explicit FishToCylProj(const Undistorter& undistorter);
-    void stitch_project_to_cyn(int time = 0);
+    void stitch_project_to_cyn();
     void setImage(cv::Mat input_img);
     void setExtraImage(cv::Mat extra_img);
     cv::Mat getProjectedImage();
@@ -62,11 +62,9 @@ private:
     uchar3* extra_view_buffer = nullptr;
 
     ViewGPU_stilib extra_view;
-    CylinderGPU_stilib* cyl_ = nullptr;
     ViewGPU_stilib view_;
     int cyl_image_width_, cyl_image_height_;
     int row_grid_num_ = 32, col_grid_num_ = 32;
-    CylinderImageGPU_stilib cyl_image_;
 
     std::mutex mutex_on_back_track_image_buffer;
     cv::Mat back_track_image_buffer;

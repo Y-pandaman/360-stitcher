@@ -1,7 +1,5 @@
 #pragma once
 
-//#define OUTPUT_CYL_IMAGE
-
 #include "math_utils.h"    // 在上
 
 #include "helper_cuda.h"   // 在下

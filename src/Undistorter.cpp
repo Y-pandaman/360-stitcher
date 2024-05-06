@@ -92,28 +92,12 @@ void Undistorter::changeSize(float factor) {
     input_image_size.width *= factor;
 }
 
-// 将图像投影到圆柱面上
-void FishToCylProj::stitch_project_to_cyn(int time) {
-    if (cyl_ == nullptr) {
-        float r = 1000.0;   // 圆柱半径
-        // 创建圆柱投影对象
-        cyl_ = new CylinderGPU_stilib(view_.camera.R, view_.camera.C, r);
-        cyl_image_width_  = view_.width * 1.5;    // 圆柱体图像的宽度
-        cyl_image_height_ = view_.height * 1.2;   // 圆柱体图像的高度
-        // 根据col_grid_num_（列网格数）调整圆柱体图像的高度/宽度，确保它是行/列网格数的整数倍。
-        cyl_image_width_ =
-            ((cyl_image_width_ - 1) / col_grid_num_ + 1) * col_grid_num_;
-        cyl_image_height_ =
-            ((cyl_image_height_ - 1) / row_grid_num_ + 1) * row_grid_num_;
-
-        //创建一个圆柱体图像对象CylinderImageGPU_stilib，使用调整后的宽度和高度进行初始化
-        cyl_image_ =
-            CylinderImageGPU_stilib(cyl_image_height_, cyl_image_width_);
-    }
-
+// 将轨迹线叠加在后视图上
+void FishToCylProj::stitch_project_to_cyn() {
     // 检查cuda错误
     checkCudaErrors(cudaDeviceSynchronize());
     checkCudaErrors(cudaGetLastError());
+
     // 如果存在背景跟踪图像，将背景跟踪图像与当前视图混合；否则，将当前视图投影到圆柱体上。
     if (m_sub_back_track != nullptr) {
         cv::Mat back_track_image = getBackTrackImage();   // 获取当前帧
@@ -124,22 +108,7 @@ void FishToCylProj::stitch_project_to_cyn(int time) {
             BlendExtraViewToScreen_cuda(view_.image, extra_view.image,
                                         view_.width, view_.height, 1.0);
         }
-    } else {
-        // 将当前视图投影到圆柱体图像上。
-        projToCylinderImage_cuda(view_, cyl_image_, *cyl_, cyl_image_width_,
-                                 cyl_image_height_);
     }
-
-// 将圆柱体图像从GPU内存复制到CPU内存，并将结果保存为PNG文件。
-#ifdef OUTPUT_CYL_IMAGE
-    cv::Mat rgb_0, mask_0;
-    static int cyl_image_count = 0;
-    cyl_image_.toCPU(rgb_0, mask_0);
-    cv::imwrite("./output/out_image/cyl_image_" +
-                    std::to_string(cyl_image_count) + ".png",
-                rgb_0);
-    cyl_image_count++;
-#endif
 }
 
 FishToCylProj::FishToCylProj(const Undistorter& undistorter) {
@@ -216,7 +185,7 @@ void FishToCylProj::setImage(cv::Mat input_img) {
                                cudaMemcpyHostToDevice));
 }
 
-// 获取投影后的图像
+// 获取叠加后的图像
 cv::Mat FishToCylProj::getProjectedImage() {
     cv::Mat img, mask;
     // 将GPU上的图像数据和掩码数据复制到CPU内存中的img和mask变量
