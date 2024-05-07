@@ -17,6 +17,7 @@
 #include "stage/gst_receiver.h"
 #include "stage/undistorter.h"
 #include "stage/yolo_detect.h"
+#include "stage/yolov5trt_det.h"
 #include "util/Intersector.h"
 #include "util/config.h"
 #include <filesystem>

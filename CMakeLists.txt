@@ -19,6 +19,12 @@ if(OPENMP_FOUND)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif()
 
+set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
+enable_language(CUDA)
+
+include_directories(/usr/local/cuda/include)
+link_directories(/usr/local/cuda/lib64)
+
 include_directories(
         include
         ${OpenCV_INCLUDE_DIRS}
@@ -27,6 +33,11 @@ include_directories(
         ${FREETYPE_INCLUDE_DIRS}
         ${CUDA_INCLUDE_DIRS}
 )
+
+include_directories(${PROJECT_SOURCE_DIR}/plugin/ ${PROJECT_SOURCE_DIR}/include/)
+file(GLOB_RECURSE PLUGIN_SRCS ${PROJECT_SOURCE_DIR}/plugin/*.cu)
+add_library(myplugins SHARED ${PLUGIN_SRCS})
+target_link_libraries(myplugins nvinfer cudart)
 
 cuda_add_executable(
         pano_test
@@ -47,6 +58,11 @@ CUDA_ADD_LIBRARY(pano_main SHARED
         src/stage/camera_sender.cpp
         src/util/config.cpp
         src/stage/render.cu
+        src/stage/calibrator.cpp
+        src/stage/model.cpp
+        src/stage/postprocess.cpp
+        src/stage/preprocess.cu
+        src/stage/yolov5trt_det.cpp
 )
 
 set(protobuf_files
@@ -68,4 +84,5 @@ target_link_libraries(
         ${EIGEN3_LIBRARIES}
         ${FREETYPE_LIBRARIES}
         eCAL::core
+        myplugins
 )

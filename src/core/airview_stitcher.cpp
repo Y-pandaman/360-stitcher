@@ -294,6 +294,7 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
     cv::Mat total_seam_map =
         cv::Mat::ones(scale_height_, scale_width_, CV_8UC1) * 255;
     cv::Mat seam_line = cv::Mat::zeros(scale_height_, scale_width_, CV_8UC1);
+
     for (uint64_t i = 0; i < num_view_; i++) {
         cv::Mat overlap_mask = overlap_masks_[i];
         seam_search(endPts_[i], overlap_mask, diffs_map_[i], total_seam_map,
@@ -310,8 +311,10 @@ void AirViewStitcher::feed(std::vector<cv::Mat> input_img,
     // total_seam_map: 全部视图的接缝图
     // num_view_: 视图的数量
     // 返回值: 包含每个视图接缝掩膜的向量
+
     std::vector<cv::Mat> seam_masks_cpu =
         gen_seam_mask(total_mask_, total_seam_map, num_view_);
+
     prev_frame_seam = total_seam_map;
 
     // 确保所有CUDA操作都已完成，检查是否有错误发生

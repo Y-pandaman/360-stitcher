@@ -14,8 +14,11 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 
     // 启动yolo识别器
     std::filesystem::path weight_file_path(parameters_dir);
-    weight_file_path.append("weights/best.onnx");
-    yolo_detect::YoloDetect yolo_detect(weight_file_path, true);   // 初始化yolo
+    // weight_file_path.append("weights/best.onnx");
+    // yolo_detect::YoloDetect yolo_detect(weight_file_path, true);   //
+    // 初始化yolo
+    weight_file_path.append("weights/best0316.engine");
+    Yolov5TrtDet yolo_detect(weight_file_path);
     checkCudaErrors(cudaFree(0));
     cudaEvent_t start, stop;
     checkCudaErrors(cudaEventCreate(&start));
@@ -26,7 +29,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     yamls_dir.append("yamls");   // 相机的内参，单应性矩阵
 
     // 录制的图像文件路径
-    std::filesystem::path data_root_dir = "/home/bdca/camera_video1";
+    std::filesystem::path data_root_dir = "../assets/camera_video1";
 
     // 相机索引
     // 左后-左前-前-右前-右后-后
@@ -284,6 +287,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         total_timer.TimeStart();
 
         step_timer.TimeStart();
+
         // 使用图像文件
 #ifdef USE_VIDEO_INPUT
         bool video_done_flag = false;
@@ -330,10 +334,12 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
                            cv::Size(src_width, src_height));
             }
         }
-
+        innoreal::InnoRealTimer t1;
+        t1.TimeStart();
         // 遍历输入图像向量，对每张图像进行YOLO检测，并处理检测结果
         for (uint64_t i = 0; i < input_img_vec.size(); i++) {
             // 使用YOLO检测算法对当前图像进行物体检测，并获取检测结果
+
             struct_yolo_result yolo_result =
                 yolo_detect.detect_bbox(undistorted_img_vec[i]);
 
@@ -346,6 +352,9 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
             // 将当前图像的检测框向量存入总的结果向量中
             bboxs[i] = temp;
         }
+        t1.TimeEnd();
+        printf("time: %f\n", t1.TimeGap_in_ms());
+
         std::vector<std::vector<BBox>> temp(camera_idx_vec.size());
 
         As->feed(undistorted_img_vec, bboxs);   // 执行拼接
@@ -438,7 +447,6 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
                 }
             }
         }
-
         // 贴图
         cv::rectangle(rgb, car_rect, car_rect_color, 2);
 
@@ -454,7 +462,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
 #ifdef OUTPUT_STITCHING_RESULT_VIDEO
         cv::imshow("result_image", rgb);
         cv::waitKey(1);
-        video_writer.write(rgb);
+        // video_writer.write(rgb);
 #endif
 
         total_timer.TimeEnd();
