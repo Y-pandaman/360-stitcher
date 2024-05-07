@@ -407,7 +407,6 @@ gen_seam_mask(cv::Mat total_mask, cv::Mat total_seam_map, int num_view) {
                        CV_8UC1);   // 创建一个标记矩阵，用于标记已经访问过的像素
 
     int mark_idx = 0;
-    // TODO: parallel
     for (int i = 0; i < total_mask.rows; i++) {
         for (int j = 0; j < total_mask.cols; j++) {
             // 跳过接缝图中已定义的像素、已访问过的像素和掩膜值小于128的像素

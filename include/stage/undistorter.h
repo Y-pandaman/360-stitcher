@@ -69,12 +69,12 @@ private:
     std::mutex mutex_on_back_track_image_buffer;
     cv::Mat back_track_image_buffer;
 
-    std::shared_ptr<eCAL::protobuf::CSubscriber<proto_messages::OpencvImage>>
+    std::shared_ptr<eCAL::protobuf::CSubscriber<xcmg_proto::OpencvImage>>
         m_sub_back_track = nullptr;
 
     // 图像回调函数
     void ecalBackTrackImageCallBack(const char* _topic_name,
-                                    const proto_messages::OpencvImage& msg,
+                                    const xcmg_proto::OpencvImage& msg,
                                     long long int _time, long long int _clock,
                                     long long int _id) {
         cv::Mat image(msg.rows(), msg.cols(), msg.elt_type());

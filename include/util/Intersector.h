@@ -1,3 +1,12 @@
+/*
+ * @Author: 姚潘涛
+ * @Date: 2024-04-25 20:53:06
+ * @LastEditors: 姚潘涛
+ * @LastEditTime: 2024-05-07 08:54:12
+ * @Description:
+ *
+ * Copyright (c) 2024 by pandaman, All Rights Reserved.
+ */
 //
 // Created by touch on 22-12-27.
 //
@@ -5,7 +14,6 @@
 #ifndef INC_360CODE_INTERSECTOR_H
 #define INC_360CODE_INTERSECTOR_H
 
-#include "cuda_runtime.h"
 #include <opencv2/opencv.hpp>
 
 class Intersector {

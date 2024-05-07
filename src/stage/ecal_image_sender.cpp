@@ -22,7 +22,7 @@ EcalImageSender::~EcalImageSender() { }
  */
 void EcalImageSender::pubImage(cv::Mat image) {
     // 创建protobuf消息，用于存储图像信息和数据
-    proto_messages::OpencvImage message_opencv_image;
+    xcmg_proto::OpencvImage message_opencv_image;
 
     // 设置图像的行数、列数和元素类型
     message_opencv_image.set_rows(image.rows);
@@ -50,6 +50,7 @@ void EcalImageSender::open(const std::string& topic) {
     // 启用eCAL的环回功能，使得发布的消息可以被本地订阅者接收到
     eCAL::Util::EnableLoopback(true);
     // 创建一个基于指定主题的图像发布器
-    m_pub_image = std::make_shared<
-        eCAL::protobuf::CPublisher<proto_messages::OpencvImage>>(topic);
+    m_pub_image =
+        std::make_shared<eCAL::protobuf::CPublisher<xcmg_proto::OpencvImage>>(
+            topic);
 }

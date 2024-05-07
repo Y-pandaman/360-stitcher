@@ -1,10 +1,10 @@
 #include "core/pano_main.h"
 
-// #define OUTPUT_STITCHING_RESULT_VIDEO
+#define OUTPUT_STITCHING_RESULT_VIDEO
 
-#define USE_GST_INPUT
-#define RESEND_ORIGINAL_IMAGE
-// #define USE_VIDEO_INPUT
+// #define USE_GST_INPUT
+// #define RESEND_ORIGINAL_IMAGE
+#define USE_VIDEO_INPUT
 #define USE_720P
 
 static Config config;
@@ -173,7 +173,7 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
         if (original_ecal_topic_str[i].compare("back") == 0) {
             camera_sender_vec[i].setUndistorter(
                 undistorter_vec[original_camera_id_in_vec[i]],
-                true);   // 是否添加倒车辅助线
+                false);   // 是否添加倒车辅助线
         }
         camera_sender_vec[i].setGstReceiver(
             &gst_receivers[original_camera_id_in_vec[i]]);

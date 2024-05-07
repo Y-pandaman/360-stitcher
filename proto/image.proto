@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package proto_messages;
+package xcmg_proto;
 
 message OpencvImage{
     int32 rows = 1;

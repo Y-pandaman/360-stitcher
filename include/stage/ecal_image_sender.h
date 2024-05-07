@@ -29,7 +29,7 @@ public:
     void pubImage(cv::Mat image);
 
 private:
-    std::shared_ptr<eCAL::protobuf::CPublisher<proto_messages::OpencvImage>>
+    std::shared_ptr<eCAL::protobuf::CPublisher<xcmg_proto::OpencvImage>>
         m_pub_image;
 };
 

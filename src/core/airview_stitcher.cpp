@@ -83,7 +83,6 @@ AirViewStitcher::AirViewStitcher(int num_view, int src_height, int src_width,
 }
 
 AirViewStitcher::~AirViewStitcher() {
-    printf("[TODO] Not finished yet\n");
     printf("Destroyed AirViewStitcher\n");
 }
 

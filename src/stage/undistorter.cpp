@@ -163,9 +163,9 @@ FishToCylProj::FishToCylProj(const Undistorter& undistorter) {
         eCAL::Initialize();
     eCAL::Util::EnableLoopback(true);
     // 订阅Back_Track_Image数据
-    m_sub_back_track = std::make_shared<
-        eCAL::protobuf::CSubscriber<proto_messages::OpencvImage>>(
-        "Back_Track_Image");
+    m_sub_back_track =
+        std::make_shared<eCAL::protobuf::CSubscriber<xcmg_proto::OpencvImage>>(
+            "Back_Track_Image");
 
     auto cb = std::bind(&FishToCylProj::ecalBackTrackImageCallBack, this,
                         std::placeholders::_1, std::placeholders::_2,
