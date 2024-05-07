@@ -1,4 +1,4 @@
-#include "stage/cuda_utils.h"
+#include "yolo/cuda_utils.h"
 #include "yololayer.h"
 #include <cassert>
 #include <iostream>

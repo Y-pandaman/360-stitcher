@@ -1,6 +1,6 @@
-#include "stage/model.h"
-#include "stage/calibrator.h"
-#include "stage/config.h"
+#include "yolo/model.h"
+#include "yolo/calibrator.h"
+#include "yolo/config.h"
 #include "yololayer.h"
 #include <cassert>
 #include <cmath>

@@ -1,4 +1,13 @@
-#include "stage/yolo.h"
+/*
+ * @Author: 姚潘涛
+ * @Date: 2024-04-25 20:39:10
+ * @LastEditors: 姚潘涛
+ * @LastEditTime: 2024-05-07 15:38:45
+ * @Description:
+ *
+ * Copyright (c) 2024 by pandaman, All Rights Reserved.
+ */
+#include "yolo/yolo.h"
 using namespace std;
 using namespace cv;
 using namespace cv::dnn;

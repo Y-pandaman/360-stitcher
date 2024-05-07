@@ -1,7 +1,7 @@
 #pragma once
 
-#include "stage/macros.h"
-#include "stage/types.h"
+#include "yolo/macros.h"
+#include "yolo/types.h"
 #include <string>
 #include <vector>
 

@@ -1,4 +1,4 @@
-#include "stage/yolov5trt_det.h"
+#include "yolo/yolov5trt_det.h"
 
 Yolov5TrtDet::Yolov5TrtDet(std::string engine) {
     engine_name_ = engine;

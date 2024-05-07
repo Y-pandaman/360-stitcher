@@ -1,12 +1,21 @@
-#include "stage/cuda_utils.h"
-#include "stage/logging.h"
-#include "stage/model.h"
-#include "stage/postprocess.h"
-#include "stage/preprocess.h"
-#include "stage/utils.h"
-#include "stage/yolo.h"
-#include "stage/yolo_detect.h"
+/*
+ * @Author: 姚潘涛
+ * @Date: 2024-05-07 14:31:22
+ * @LastEditors: 姚潘涛
+ * @LastEditTime: 2024-05-07 15:40:18
+ * @Description:
+ *
+ * Copyright (c) 2024 by pandaman, All Rights Reserved.
+ */
 #include "util/loguru.hpp"
+#include "yolo/cuda_utils.h"
+#include "yolo/logging.h"
+#include "yolo/model.h"
+#include "yolo/postprocess.h"
+#include "yolo/preprocess.h"
+#include "yolo/utils.h"
+#include "yolo/yolo.h"
+#include "yolo/yolo_detect.h"
 #include <chrono>
 #include <cmath>
 #include <iostream>

@@ -2,14 +2,14 @@
  * @Author: 姚潘涛
  * @Date: 2024-04-25 20:51:36
  * @LastEditors: 姚潘涛
- * @LastEditTime: 2024-05-06 19:49:14
+ * @LastEditTime: 2024-05-07 15:40:04
  * @Description:
  *
  * Copyright (c) 2024 by pandaman, All Rights Reserved.
  */
 #pragma once
 
-#include "stage/yolo.h"
+#include "yolo/yolo.h"
 #include "util/loguru.hpp"
 #include <iostream>
 #include <math.h>

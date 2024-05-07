@@ -1,6 +1,6 @@
-#include "stage/calibrator.h"
-#include "stage/cuda_utils.h"
-#include "stage/utils.h"
+#include "yolo/calibrator.h"
+#include "yolo/cuda_utils.h"
+#include "yolo/utils.h"
 #include <fstream>
 #include <iostream>
 #include <iterator>

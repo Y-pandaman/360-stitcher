@@ -51,18 +51,18 @@ CUDA_ADD_LIBRARY(pano_main SHARED
         src/stage/undistorter.cpp
         src/stage/gst_receiver.cpp
         src/util/loguru.cpp
-        src/stage/yolo.cpp
-        src/stage/yolo_detect.cpp
+        src/yolo/yolo.cpp
+        src/yolo/yolo_detect.cpp
         src/stage/ecal_image_sender.cpp
         src/core/pano_main.cpp
         src/stage/camera_sender.cpp
         src/util/config.cpp
         src/stage/render.cu
-        src/stage/calibrator.cpp
-        src/stage/model.cpp
-        src/stage/postprocess.cpp
-        src/stage/preprocess.cu
-        src/stage/yolov5trt_det.cpp
+        src/yolo/calibrator.cpp
+        src/yolo/model.cpp
+        src/yolo/postprocess.cpp
+        src/yolo/preprocess.cu
+        src/yolo/yolov5trt_det.cpp
 )
 
 set(protobuf_files

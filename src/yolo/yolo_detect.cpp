@@ -1,4 +1,4 @@
-#include "stage/yolo_detect.h"
+#include "yolo/yolo_detect.h"
 
 namespace yolo_detect {
 YoloDetect::YoloDetect(std::string model_path, bool use_CUDA) {

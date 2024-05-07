@@ -1,5 +1,5 @@
-#include "stage/cuda_utils.h"
-#include "stage/preprocess.h"
+#include "yolo/cuda_utils.h"
+#include "yolo/preprocess.h"
 
 static uint8_t* img_buffer_host = nullptr;
 static uint8_t* img_buffer_device = nullptr;

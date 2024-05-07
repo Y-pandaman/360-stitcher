@@ -16,8 +16,8 @@
 #include "stage/ecal_image_sender.h"
 #include "stage/gst_receiver.h"
 #include "stage/undistorter.h"
-#include "stage/yolo_detect.h"
-#include "stage/yolov5trt_det.h"
+#include "yolo/yolo_detect.h"
+#include "yolo/yolov5trt_det.h"
 #include "util/Intersector.h"
 #include "util/config.h"
 #include <filesystem>

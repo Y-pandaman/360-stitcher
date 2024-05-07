@@ -1,6 +1,6 @@
 #include "core/pano_main.h"
 
-#define OUTPUT_STITCHING_RESULT_VIDEO
+// #define OUTPUT_STITCHING_RESULT_VIDEO
 
 // #define USE_GST_INPUT
 // #define RESEND_ORIGINAL_IMAGE
@@ -15,10 +15,10 @@ int panoMain(const std::string& parameters_dir_, bool adjust_rect) {
     // 启动yolo识别器
     std::filesystem::path weight_file_path(parameters_dir);
     // weight_file_path.append("weights/best.onnx");
-    // yolo_detect::YoloDetect yolo_detect(weight_file_path, true);   //
-    // 初始化yolo
+    // yolo_detect::YoloDetect yolo_detect(weight_file_path, true);
     weight_file_path.append("weights/best0316.engine");
     Yolov5TrtDet yolo_detect(weight_file_path);
+
     checkCudaErrors(cudaFree(0));
     cudaEvent_t start, stop;
     checkCudaErrors(cudaEventCreate(&start));
