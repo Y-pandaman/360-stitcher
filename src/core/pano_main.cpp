@@ -1,6 +1,6 @@
 #include "core/pano_main.h"
 
-// #define OUTPUT_STITCHING_RESULT_VIDEO
+#define OUTPUT_STITCHING_RESULT_VIDEO
 
 // #define USE_GST_INPUT
 // #define RESEND_ORIGINAL_IMAGE

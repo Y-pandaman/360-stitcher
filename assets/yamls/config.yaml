@@ -1,9 +1,9 @@
 %YAML:1.0
 ---
 
-icon_new_height:  176  #1758
-icon_new_width:  340 #3684
-final_crop_w_left: 0
-final_crop_w_right: 0
-final_crop_h_top: 0
-final_crop_h_bottom: 0
+icon_new_height:  145  #1758
+icon_new_width:  315 #3684
+final_crop_w_left: 100
+final_crop_w_right: 105
+final_crop_h_top: 132
+final_crop_h_bottom: 100

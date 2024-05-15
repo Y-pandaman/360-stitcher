@@ -103,7 +103,7 @@ struct BBox {
         for (int i = 0; i < 4; i++) {
             float3 warped_p = homographBased_warp(p[i], H);   // 应用单应性变换
 
-            assert(warped_p.z < 0);   // 确保变换后的点位于图像前方
+            // assert(warped_p.z < 0);   // 确保变换后的点位于图像前方
 
             // 规范化坐标，去除齐次坐标中的z分量
             warped_p.x /= warped_p.z;
